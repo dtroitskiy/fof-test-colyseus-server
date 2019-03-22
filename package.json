@@ -1,0 +1,22 @@
+{
+	"name": "TestColyseusServer",
+	"version": "0.0.1",
+	"description": "Test Colyseus server",
+	"main": "server.js",
+	"scripts": {
+		"start": "nodemon --watch '**/*' --exec ts-node server.ts"
+	},
+	"engines": {
+		"node": "10.15.1"
+	},
+	"author": "Stranger",
+	"dependencies": {
+		"colyseus": "^0.9.28",
+		"nodemon": "^1.11.0"
+	},
+	"devDependencies": {
+		"ts-node": "^5.0.1",
+		"typescript": "^2.7.2"
+	}
+}
+
