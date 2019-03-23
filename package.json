@@ -12,9 +12,7 @@
 	"author": "Stranger",
 	"dependencies": {
 		"colyseus": "^0.9.28",
-		"nodemon": "^1.11.0"
-	},
-	"devDependencies": {
+		"nodemon": "^1.11.0",
 		"ts-node": "^5.0.1",
 		"typescript": "^2.7.2"
 	}
