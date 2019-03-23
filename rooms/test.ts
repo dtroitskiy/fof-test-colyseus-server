@@ -7,6 +7,7 @@ export class TestRoom extends Room <CombatState>
 	{
 		console.log('TestRoom created!');
 		this.setState(new CombatState());
+		this.setPatchRate(1000 / 60);
 		this.setSimulationInterval(() =>
 		{
 			this.state.update(this.clock.deltaTime / 1000);
