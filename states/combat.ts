@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import { EntityMap, nosync } from 'colyseus';
 import * as Config from '../config';
-import { CombatConsts, CombatSystem } from '../FoFcombat';
+import { CombatConsts, CombatAbilities, CombatPlayer, CombatSystem } from '../FoFcombat';
+import * as FoFcombat from '../FoFcombat';
 
 export class CombatState
 {
@@ -32,7 +33,7 @@ export class CombatState
 	{
 		const cs = this.combatSystem;
 		
-		const player = {};
+		const player = new CombatPlayer();
 		player.id = id;
 	
 		// randomly choosing player starting position on the map
@@ -48,7 +49,11 @@ export class CombatState
 		}
 		while (cs.getTileState(player.mapTileX, player.mapTileY, player.mapTileZ) != CombatConsts.MAP_TILE_FREE);
 		
-		player.abilities = Config.PLAYER_ABILITIES;
+		player.abilities = new CombatAbilities();
+		for (let i in Config.PLAYER_ABILITIES)
+		{
+			player.abilities[i] = Config.PLAYER_ABILITIES[i];
+		}
 		cs.addPlayer(player);
 		
 		this.players[id] = player;
