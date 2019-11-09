@@ -1,35 +1,25 @@
-import * as fs from 'fs';
-import { EntityMap, nosync } from 'colyseus';
-import * as Config from '../config';
-import { CombatConsts, CombatAbilities, CombatPlayer, CombatSystem } from '../FoFcombat';
+import { Schema, type } from "@colyseus/schema";
+import { Loader } from '../loader';
+import { CombatSystem } from '../FoFcombat';
 import * as FoFcombat from '../FoFcombat';
 
-export class CombatState
+export class CombatState extends Schema
 {
-	@nosync
-	combatSystem : CombatSystem;
+	combatSystem: CombatSystem;
 	
-	players : EntityMap = {};
-	
+	@type("number")
+	test: number;
+
 	constructor()
 	{
-		this.combatSystem = new CombatSystem(Config.MAP_WIDTH, Config.MAP_HEIGHT);
-		this.createMapObstacles();
+		super();
+	
+		Loader.init();
+		Loader.loadDB();
+		Loader.loadResources();
 	}
 	
-	createMapObstacles()
-	{
-		const cs = this.combatSystem;
-		const contents = fs.readFileSync('map.json');
-		const mapData = JSON.parse(contents);
-		for (let i in mapData)
-		{
-			const tile = mapData[i];
-			cs.setTileState(tile.x, tile.y, tile.z, tile.state);
-		}
-	}
-	
-	createPlayer(id : string)
+	/*createPlayer(id : string)
 	{
 		const cs = this.combatSystem;
 		
@@ -37,7 +27,6 @@ export class CombatState
 		player.id = id;
 	
 		// randomly choosing player starting position on the map
-		let found = false;
 		player.mapTileZ = CombatConsts.MAP_GROUND_FLOOR;
 		
 		player.mapTileX = Math.floor(Math.random() * cs.mapWidth);
@@ -72,11 +61,10 @@ export class CombatState
 		const player = this.players[id];
 		player.movementX = movementX;
 		player.movementY = movementY;
-	}
+	}*/
 	
 	update(delta : number)
 	{
-		this.combatSystem.tick(delta);
+		// this.combatSystem.tick(delta);
 	}
 }
-
