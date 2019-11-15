@@ -1,16 +1,16 @@
-import { FS, ObjectsCollection, ProgressCallback, DB, OTBMap, UniversalTileMap, CombatSystem } from './FoFcombat';
-import * as FoFcombat from './FoFcombat';
+import { FS, ObjectsCollection, ProgressCallback, DB, OTBMap, UniversalTileMap, CombatSystem } from './FoFcombat/FoFcombat';
+import * as FoFcombat from './FoFcombat/FoFcombat';
 
 export class Loader
 {
-	static inited: boolean = false;
+	static isInited: boolean = false;
 
 	static init()
 	{
-		if (this.inited) return;
+		if (this.isInited) return;
 		FS.mkdir('/res');
 		FS.mount(FS.filesystems.NODEFS, { root: '../../FoFdata/res' }, '/res');
-		this.inited  = true;
+		this.isInited  = true;
 	}
 
 	static loadDB()
@@ -84,7 +84,7 @@ export class Loader
 		
 		const universalTileMap = new UniversalTileMap();
 		universalTileMap.build(otbMap, progressCallback);
-		
+
 		return universalTileMap;
 	}
 }

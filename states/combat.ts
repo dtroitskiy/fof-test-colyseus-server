@@ -1,7 +1,7 @@
 import { Schema, type } from "@colyseus/schema";
 import { Loader } from '../loader';
-import { CombatSystem } from '../FoFcombat';
-import * as FoFcombat from '../FoFcombat';
+import { CombatSystem } from '../FoFcombat/FoFcombat';
+import * as FoFcombat from '../FoFcombat/FoFcombat';
 
 export class CombatState extends Schema
 {
