@@ -5,12 +5,14 @@ import { CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, Co
 
 export class TestRoom extends Room
 {
-	isLoaded:boolean = false;
+	static SYNC_INTERVAL: number = 1000;
+
+	isLoaded: boolean = false;
 
 	universalTileMap: UniversalTileMap = null;
-	combatSystem:CombatSystem = null;
+	combatSystem: CombatSystem = null;
 
-	clientIDs: string[] = [];
+	creaturesData: object[] = [];
 
 	onCreate(options: any)
 	{
@@ -20,8 +22,6 @@ export class TestRoom extends Room
 	onJoin(client: Client, options: any)
 	{
 		console.log(`Client ${client.sessionId} joined TestRoom.`);
-
-		this.clientIDs.push(client.sessionId);
 
 		this.send(client, {
 			'message': 'load',
@@ -44,52 +44,25 @@ export class TestRoom extends Room
 			if (client.sessionId == otherClient.sessionId) continue;
 			this.send(otherClient, otherClientsMessage);
 		}
+
+		for (let i in this.creaturesData)
+		{
+			if (client.sessionId == this.creaturesData[i].creatureID)
+			{
+				this.creaturesData.splice(i, 1);
+			}
+		}
 	}
 
 	onMessage(client: Client, data: any)
 	{
 		switch (data.message)
 		{
-			case 'addMe':
-			{
-				this.addCreature(client.sessionId, data.combatData);
-				
-				const floor = this.combatSystem.getCreatureFloor(client.sessionId);
-				const pos = this.combatSystem.getCreaturePosition(client.sessionId);
-				
-				this.send(client, { 'message': 'addSelf', 'position': { 'x': pos.x, 'y': pos.y, 'z': floor } });
-
-				const otherClientsMessage = {
-					'message': 'addCreature',
-					'creatureID': client.sessionId,
-					'combatData': data.combatData,
-					'position': { 'x': pos.x, 'y': pos.y, 'z': floor }
-				};
-				for (let i in this.clients)
-				{
-					const otherClient = this.clients[i];
-					if (client.sessionId == otherClient.sessionId) continue;
-					this.send(otherClient, otherClientsMessage);
-				}
-			}
+			case 'addPlayer':
+				this.handlePlayerAdd(client, data);
 			break;
 			case 'movement':
-			{
-				this.combatSystem.setCreatureMovement(client.sessionId, data.movementX, data.movementY);
-
-				const otherClientsMessage = {
-					'message': 'movement',
-					'creatureID': client.sessionId,
-					'movementX': data.movementX,
-					'movementY': data.movementY
-				};
-				for (let i in this.clients)
-				{
-					const otherClient = this.clients[i];
-					if (client.sessionId == otherClient.sessionId) continue;
-					this.send(otherClient, otherClientsMessage);
-				}
-			}
+				this.handleMovement(client, data);
 			break;
 		}
 	}
@@ -114,8 +87,73 @@ export class TestRoom extends Room
 		{
 			this.update(this.clock.deltaTime / 1000);
 		});
+
+		this.clock.setInterval(this.sync.bind(this), TestRoom.SYNC_INTERVAL);
 		
 		this.isLoaded = true;
+	}
+
+	handlePlayerAdd(client: Client, data: any)
+	{
+		this.addCreature(client.sessionId, data.combatData);
+				
+		const floor = this.combatSystem.getCreatureFloor(client.sessionId);
+		const pos = this.combatSystem.getCreaturePosition(client.sessionId);
+		const position = { 'x': pos.x, 'y': pos.y, 'z': floor };
+		
+		this.send(client, { 'message': 'addSelf', 'position': position });
+		if (this.creaturesData.length > 0)
+		{
+			for (let i in this.creaturesData)
+			{
+				const d = this.creaturesData[i];
+				d.position.z = this.combatSystem.getCreatureFloor(d.creatureID);
+				const pos = this.combatSystem.getCreaturePosition(d.creatureID);
+				d.position.x = pos.x;
+				d.position.y = pos.y;
+			}
+			this.send(client, { 'message': 'addCreatures', 'creaturesData': this.creaturesData });
+		}
+
+		this.creaturesData.push({
+			'creatureID': client.sessionId,
+			'combatData': data.combatData,
+			'floor': floor,
+			'position': position
+		});
+
+		const otherClientsMessage = {
+			'message': 'addCreature',
+			'creatureID': client.sessionId,
+			'combatData': data.combatData,
+			'position': position
+		};
+		for (let i in this.clients)
+		{
+			const otherClient = this.clients[i];
+			if (client.sessionId == otherClient.sessionId) continue;
+			this.send(otherClient, otherClientsMessage);
+		}
+
+		client.isLoaded = true;
+	}
+
+	handleMovement(client: Client, data: any)
+	{
+		this.combatSystem.setCreatureMovement(client.sessionId, data.movementX, data.movementY);
+
+		const otherClientsMessage = {
+			'message': 'movement',
+			'creatureID': client.sessionId,
+			'movementX': data.movementX,
+			'movementY': data.movementY
+		};
+		for (let i in this.clients)
+		{
+			const otherClient = this.clients[i];
+			if (client.sessionId == otherClient.sessionId || !otherClient.isLoaded) continue;
+			this.send(otherClient, otherClientsMessage);
+		}
 	}
 
 	addCreature(creatureID: string, combatData: object)
@@ -184,6 +222,34 @@ export class TestRoom extends Room
 		combatData.talents = talents;
 
 		return combatData;
+	}
+
+	sync()
+	{
+		if (this.creaturesData.length == 0) return;
+
+		const syncData = [];
+		for (let i in this.creaturesData)
+		{
+			const d = this.creaturesData[i];
+			d.position.z = this.combatSystem.getCreatureFloor(d.creatureID);
+			const pos = this.combatSystem.getCreaturePosition(d.creatureID);
+			d.position.x = pos.x;
+			d.position.y = pos.y;
+
+			const sd = { 'creatureID': d.creatureID, 'position': d.position };
+			syncData.push(sd);
+		}
+
+		const message = { 'message': 'sync', 'syncData': syncData };
+		for (let i in this.clients)
+		{
+			const client = this.clients[i];
+			if (client.isLoaded)
+			{
+				this.send(client, message);
+			}
+		}
 	}
 
 	update(dt: number)
