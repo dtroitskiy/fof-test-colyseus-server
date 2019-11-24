@@ -1,7 +1,8 @@
 import { Room, Client } from 'colyseus';
 import { Loader } from '../loader';
-import { CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, CombatEquipment,
-         CombatSpell, VectorCombatSpell, CombatTalent, VectorCombatTalent } from '../FoFcombat/FoFcombat';
+import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, CombatEquipment, CombatSpell, VectorCombatSpell,
+         CombatTalent, VectorCombatTalent, AbilityChangeSource, CreatureHPChangedCallback, CreatureMPChangedCallback,
+         CreatureMissCallback, CreatureFullDefCallback, CreatureCritReceivedCallback, CreatureKilledCallback  } from '../FoFcombat/FoFcombat';
 
 export class TestRoom extends Room
 {
@@ -12,7 +13,7 @@ export class TestRoom extends Room
 	universalTileMap: UniversalTileMap = null;
 	combatSystem: CombatSystem = null;
 
-	creaturesData: object[] = [];
+	creatures: object = null;
 
 	onCreate(options: any)
 	{
@@ -36,21 +37,14 @@ export class TestRoom extends Room
 		console.log(`Client ${client.sessionId} left TestRoom.`);
 		
 		this.combatSystem.removeCreature(client.sessionId);
-
+		delete this.creatures[client.sessionId];
+	
 		const otherClientsMessage = { 'message': 'removeCreature', 'creatureID': client.sessionId };
-		for (let i in this.clients)
+		for (let i = 0; i < this.clients.length; ++i)
 		{
 			const otherClient = this.clients[i];
-			if (client.sessionId == otherClient.sessionId) continue;
+			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
 			this.send(otherClient, otherClientsMessage);
-		}
-
-		for (let i in this.creaturesData)
-		{
-			if (client.sessionId == this.creaturesData[i].creatureID)
-			{
-				this.creaturesData.splice(i, 1);
-			}
 		}
 	}
 
@@ -63,6 +57,12 @@ export class TestRoom extends Room
 			break;
 			case 'movement':
 				this.handleMovement(client, data);
+			break;
+			case 'swapWeapon':
+				this.handleWeaponSwap(client, data);
+			break;
+			case 'spellUsed':
+				this.handlePlayerUsedSpell(client, data);
 			break;
 		}
 	}
@@ -83,6 +83,24 @@ export class TestRoom extends Room
 
 		this.combatSystem = new CombatSystem(this.universalTileMap, '/res/scripts/');
 
+		const onCreatureHPChangedHandler = new CreatureHPChangedCallback(this.onCreatureHPChanged.bind(this));
+		this.combatSystem.addCreatureOnHPChangedHandler(onCreatureHPChangedHandler);
+		
+		const onCreatureMPChangedHandler = new CreatureMPChangedCallback(this.onCreatureMPChanged.bind(this));
+		this.combatSystem.addCreatureOnMPChangedHandler(onCreatureMPChangedHandler);
+		
+		const onCreatureMissHandler = new CreatureMissCallback(this.onCreatureMissedHit.bind(this));
+		this.combatSystem.addCreatureOnMissHandler(onCreatureMissHandler);
+
+		const onCreatureFullDefHandler = new CreatureFullDefCallback(this.onCreatureGotFullDef.bind(this));
+		this.combatSystem.addCreatureOnFullDefHandler(onCreatureFullDefHandler);
+
+		const onCreatureCritReceivedHandler = new CreatureCritReceivedCallback(this.onCreatureCritReceived.bind(this));
+		this.combatSystem.addCreatureOnCritReceivedHandler(onCreatureCritReceivedHandler);
+
+		const onCreatureKilledHandler = new CreatureKilledCallback(this.onCreatureKilled.bind(this));
+		this.combatSystem.addCreatureOnKilledHandler(onCreatureKilledHandler);
+		
 		this.setSimulationInterval(() =>
 		{
 			this.update(this.clock.deltaTime / 1000);
@@ -95,43 +113,53 @@ export class TestRoom extends Room
 
 	handlePlayerAdd(client: Client, data: any)
 	{
-		this.addCreature(client.sessionId, data.combatData);
+		const creature = {
+			'id': client.sessionId,
+			'combatData': data.combatData,
+			'position': null,
+			'HP': { 'current': 0, 'total': 0 },
+			'MP': { 'current': 0, 'total': 0 }
+		};
+
+		this.addCreature(creature.id, data.combatData);
 				
-		const floor = this.combatSystem.getCreatureFloor(client.sessionId);
-		const pos = this.combatSystem.getCreaturePosition(client.sessionId);
-		const position = { 'x': pos.x, 'y': pos.y, 'z': floor };
+		const floor = this.combatSystem.getCreatureFloor(creature.id);
+		const pos = this.combatSystem.getCreaturePosition(creature.id);
+		creature.position = { 'x': pos.x, 'y': pos.y, 'z': floor };
+		creature.HP.current = this.combatSystem.getCreatureCurrentHP(creature.id);
+		creature.HP.total = this.combatSystem.getCreatureTotalHP(creature.id);
+		creature.MP.current = this.combatSystem.getCreatureCurrentMP(creature.id);
+		creature.MP.total = this.combatSystem.getCreatureTotalMP(creature.id);
+
+		this.send(client, { 'message': 'addSelf', 'creature': creature });
 		
-		this.send(client, { 'message': 'addSelf', 'position': position });
-		if (this.creaturesData.length > 0)
+		if (this.creatures)
 		{
-			for (let i in this.creaturesData)
+			for (let id in this.creatures)
 			{
-				const d = this.creaturesData[i];
-				d.position.z = this.combatSystem.getCreatureFloor(d.creatureID);
-				const pos = this.combatSystem.getCreaturePosition(d.creatureID);
-				d.position.x = pos.x;
-				d.position.y = pos.y;
+				const creature = this.creatures[id];
+				creature.position.z = this.combatSystem.getCreatureFloor(creature.id);
+				const pos = this.combatSystem.getCreaturePosition(creature.id);
+				creature.position.x = pos.x;
+				creature.position.y = pos.y;
 			}
-			this.send(client, { 'message': 'addCreatures', 'creaturesData': this.creaturesData });
+			this.send(client, { 'message': 'addCreatures', 'creatures': this.creatures });
+		}
+		else
+		{
+			this.creatures = {};
 		}
 
-		this.creaturesData.push({
-			'creatureID': client.sessionId,
-			'combatData': data.combatData,
-			'floor': floor,
-			'position': position
-		});
+		this.creatures[creature.id] = creature;
 
 		const otherClientsMessage = {
 			'message': 'addCreature',
-			'creatureID': client.sessionId,
-			'combatData': data.combatData,
-			'position': position
+			'creature': creature
 		};
-		for (let i in this.clients)
+		for (let i = 0; i < this.clients.length; ++i)
 		{
 			const otherClient = this.clients[i];
-			if (client.sessionId == otherClient.sessionId) continue;
+			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
 			this.send(otherClient, otherClientsMessage);
 		}
 
@@ -148,10 +176,41 @@ export class TestRoom extends Room
 			'movementX': data.movementX,
 			'movementY': data.movementY
 		};
-		for (let i in this.clients)
+		for (let i = 0; i < this.clients.length; ++i)
 		{
 			const otherClient = this.clients[i];
-			if (client.sessionId == otherClient.sessionId || !otherClient.isLoaded) continue;
+			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
+			this.send(otherClient, otherClientsMessage);
+		}
+	}
+
+	handleWeaponSwap(client: Client, data: any)
+	{
+		this.combatSystem.swapCreatureWeapon(client.sessionId);
+
+		const otherClientsMessage = { 'message': 'swapWeapon', 'creatureID': client.sessionId };
+		for (let i = 0; i < this.clients.length; ++i)
+		{
+			const otherClient = this.clients[i];
+			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
+			this.send(otherClient, otherClientsMessage);
+		}
+	}
+
+	handlePlayerUsedSpell(client: Client, data: any)
+	{
+		this.combatSystem.setCreatureUsedSpell(client.sessionId, data.spellID, new Vector2(data.position.x, data.position.y));
+
+		const otherClientsMessage = {
+			'message': 'spellUsed',
+			'creatureID': client.sessionId,
+			'spellID': data.spellID,
+			'position': { 'x': data.position.x, 'y': data.position.y }
+		};
+		for (let i = 0; i < this.clients.length; ++i)
+		{
+			const otherClient = this.clients[i];
+			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
 			this.send(otherClient, otherClientsMessage);
 		}
 	}
@@ -161,7 +220,7 @@ export class TestRoom extends Room
 		combatData = this.makeCreatureCombatDataFromPlainObject(combatData);
 		this.combatSystem.addCreature(creatureID, combatData);
 		this.combatSystem.setCreatureFloor(creatureID, UniversalTileMap.GROUND_FLOOR);
-		
+
 		// for testing currently spawning creatures on some convenient coordinates in the middle of the map
 		// here we search for free tile in the row of possible positions
 		let tileX = 21, tileY = 32;
@@ -173,6 +232,128 @@ export class TestRoom extends Room
 		while (tile.isBlocking);
 		
 		this.combatSystem.setCreaturePosition(creatureID, this.combatSystem.makeCreaturePositionForTileCoords(tileX, tileY));
+	}
+
+	onCreatureHPChanged(creatureID: string, currentHP: number, totalHP: number, changeType: AbilityChangeSource)
+	{
+		if (!this.creatures) return;
+		const creature = this.creatures[creatureID];
+		if (!creature) return;
+		if (creature.HP.current == currentHP && creature.HP.total == totalHP) return;
+
+		creature.HP.current = currentHP;		
+		creature.HP.total = totalHP;
+
+		let changeTypeIndex = 0;
+		const acs = AbilityChangeSource;
+		for (let i in acs.values)
+		{
+			if (changeType = acs.values[i]) changeTypeIndex = parseInt(i);
+		}
+
+		const message = {
+			'message': 'HPChanged',
+			'creatureID': creatureID,
+			'currentHP': currentHP,
+			'totalHP': totalHP,
+			'changeType': changeTypeIndex
+		};
+		for (let i = 0; i < this.clients.length; ++i)
+		{
+			const client = this.clients[i];
+			if (client.isLoaded)
+			{
+				this.send(client, message);
+			}
+		}
+	}
+
+	onCreatureMPChanged(creatureID: string, currentMP: number, totalMP: number, changeType: AbilityChangeSource)
+	{
+		if (!this.creatures) return;
+		const creature = this.creatures[creatureID];
+		if (!creature) return;
+		if (creature.MP.current == currentMP && creature.MP.total == totalMP) return;
+
+		creature.MP.current = currentMP;		
+		creature.MP.total = totalMP;
+
+		let changeTypeIndex = 0;
+		const acs = AbilityChangeSource;
+		for (let i in acs.values)
+		{
+			if (changeType = acs.values[i]) changeTypeIndex = parseInt(i);
+		}
+
+		const message = {
+			'message': 'MPChanged',
+			'creatureID': creatureID,
+			'currentMP': currentMP,
+			'totalMP': totalMP,
+			'changeType': changeTypeIndex
+		};
+		for (let i = 0; i < this.clients.length; ++i)
+		{
+			const client = this.clients[i];
+			if (client.isLoaded)
+			{
+				this.send(client, message);
+			}
+		}
+	}
+
+	onCreatureMissedHit(creatureID: string)
+	{
+		const message = { 'message': 'miss', 'creatureID': creatureID };
+		for (let i = 0; i < this.clients.length; ++i)
+		{
+			const client = this.clients[i];
+			if (client.isLoaded)
+			{
+				this.send(client, message);
+			}
+		}
+	}
+
+	onCreatureGotFullDef(creatureID: string)
+	{
+		const message = { 'message': 'fullDef', 'creatureID': creatureID };
+		for (let i = 0; i < this.clients.length; ++i)
+		{
+			const client = this.clients[i];
+			if (client.isLoaded)
+			{
+				this.send(client, message);
+			}
+		}
+	}
+
+	onCreatureCritReceived(creatureID: string, damage: number)
+	{
+		const message = { 'message': 'crit', 'creatureID': creatureID, 'damage': damage };
+		for (let i = 0; i < this.clients.length; ++i)
+		{
+			const client = this.clients[i];
+			if (client.isLoaded)
+			{
+				this.send(client, message);
+			}
+		}
+	}
+
+	onCreatureKilled(killerCreatureID: string, killedCreatureID: string)
+	{
+		delete this.creatures[killedCreatureID];
+	
+		const message = { 'message': 'creatureKilled', 'killerCreatureID': killerCreatureID, 'killedCreatureID': killedCreatureID };
+		for (let i = 0; i < this.clients.length; ++i)
+		{
+			const client = this.clients[i];
+			if (client.isLoaded)
+			{
+				this.send(client, message);
+			}
+		}
 	}
 
 	makeCreatureCombatDataFromPlainObject(data: object)
@@ -200,7 +381,7 @@ export class TestRoom extends Room
 		combatData.equipment = equipment;
 
 		const spells = new VectorCombatSpell();
-		for (let i in data.spells)
+		for (let i = 0; i < data.spells.length; ++i)
 		{
 			const s = data.spells[i];
 			const cs = new CombatSpell();
@@ -211,7 +392,7 @@ export class TestRoom extends Room
 		combatData.spells = spells;
 
 		const talents = new VectorCombatTalent();
-		for (let i in data.talents)
+		for (let i = 0; i < data.talents.length; ++i)
 		{
 			const t = data.talents[i];
 			const ct = new CombatTalent();
@@ -226,23 +407,23 @@ export class TestRoom extends Room
 
 	sync()
 	{
-		if (this.creaturesData.length == 0) return;
+		if (!this.creatures) return;
 
 		const syncData = [];
-		for (let i in this.creaturesData)
+		for (let id in this.creatures)
 		{
-			const d = this.creaturesData[i];
-			d.position.z = this.combatSystem.getCreatureFloor(d.creatureID);
-			const pos = this.combatSystem.getCreaturePosition(d.creatureID);
-			d.position.x = pos.x;
-			d.position.y = pos.y;
+			const creature = this.creatures[id];
+			creature.position.z = this.combatSystem.getCreatureFloor(creature.id);
+			const pos = this.combatSystem.getCreaturePosition(creature.id);
+			creature.position.x = pos.x;
+			creature.position.y = pos.y;
 
-			const sd = { 'creatureID': d.creatureID, 'position': d.position };
+			const sd = { 'creatureID': id, 'position': creature.position };
 			syncData.push(sd);
 		}
 
 		const message = { 'message': 'sync', 'syncData': syncData };
-		for (let i in this.clients)
+		for (let i = 0; i < this.clients.length; ++i)
 		{
 			const client = this.clients[i];
 			if (client.isLoaded)
@@ -255,12 +436,5 @@ export class TestRoom extends Room
 	update(dt: number)
 	{
 		this.combatSystem.update(dt);
-
-		// FIXME: testing
-		/*for (let i in this.clientIDs)
-		{
-			const creatureID = this.clientIDs[i];
-			const pos = this.combatSystem.getCreaturePosition(creatureID);
-		}*/
 	}
 }
