@@ -29,7 +29,6 @@ export class Loader
 			const percentage = Math.round(progress * 100);
 			if (percentage != progressCallback.lastPercentage)
 			{
-				console.log('Loading %s - %i\%', file, percentage);
 				progressCallback.lastPercentage = percentage;
 			}
 		});
@@ -64,7 +63,6 @@ export class Loader
 			const percentage = Math.round(progress * 100);
 			if (percentage != progressCallback.lastPercentage)
 			{
-				console.log('Loading %s - %i\%', mapFilename, percentage);
 				progressCallback.lastPercentage = percentage;
 			}
 		});
@@ -77,7 +75,6 @@ export class Loader
 			const percentage = Math.round(progress * 100);
 			if (percentage != progressCallback.lastPercentage)
 			{
-				console.log('Building map - %i\%', percentage);
 				progressCallback.lastPercentage = percentage;
 			}
 		});
