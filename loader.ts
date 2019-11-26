@@ -9,7 +9,7 @@ export class Loader
 	{
 		if (this.isInited) return;
 		FS.mkdir('/res');
-		FS.mount(FS.filesystems.NODEFS, { root: '../../FoFdata/res' }, '/res');
+		FS.mount(FS.filesystems.NODEFS, { root: 'res' }, '/res');
 		this.isInited  = true;
 	}
 
