@@ -2,7 +2,8 @@ import { Room, Client } from 'colyseus';
 import { Loader } from '../loader';
 import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, CombatEquipment, CombatSpell, VectorCombatSpell,
          CombatTalent, VectorCombatTalent, AbilityChangeSource, CreatureHPChangedCallback, CreatureMPChangedCallback,
-         CreatureMissCallback, CreatureFullDefCallback, CreatureCritReceivedCallback, CreatureKilledCallback  } from '../FoFcombat/FoFcombat';
+         CreatureMissCallback, CreatureFullDefCallback, CreatureCritReceivedCallback, CreatureKilledCallback,
+         EffectPlayRequestedCallback  } from '../FoFcombat/FoFcombat';
 
 export class TestRoom extends Room
 {
@@ -61,6 +62,9 @@ export class TestRoom extends Room
 			case 'swapWeapon':
 				this.handleWeaponSwap(client, data);
 			break;
+			case 'swapAmmo':
+				this.handleAmmoSwap(client, data);
+			break;
 			case 'spellUsed':
 				this.handlePlayerUsedSpell(client, data);
 			break;
@@ -70,6 +74,18 @@ export class TestRoom extends Room
 	onDispose()
 	{
 		console.log('TestRoom disposed!');
+	}
+
+	broadcast(message: object, excludeClientID: any)
+	{
+		for (let i = 0; i < this.clients.length; ++i)
+		{
+			const client = this.clients[i];
+			if (client.isLoaded && (!excludeClientID || client.sessionId != excludeClientID))
+			{
+				this.send(client, message);
+			}
+		}
 	}
 
 	load()
@@ -83,23 +99,26 @@ export class TestRoom extends Room
 
 		this.combatSystem = new CombatSystem(this.universalTileMap, '/res/scripts/');
 
-		const onCreatureHPChangedHandler = new CreatureHPChangedCallback(this.onCreatureHPChanged.bind(this));
-		this.combatSystem.addCreatureOnHPChangedHandler(onCreatureHPChangedHandler);
+		const creatureOnHPChangedHandler = new CreatureHPChangedCallback(this.onCreatureHPChanged.bind(this));
+		this.combatSystem.addCreatureOnHPChangedHandler(creatureOnHPChangedHandler);
 		
-		const onCreatureMPChangedHandler = new CreatureMPChangedCallback(this.onCreatureMPChanged.bind(this));
-		this.combatSystem.addCreatureOnMPChangedHandler(onCreatureMPChangedHandler);
+		const creatureOnMPChangedHandler = new CreatureMPChangedCallback(this.onCreatureMPChanged.bind(this));
+		this.combatSystem.addCreatureOnMPChangedHandler(creatureOnMPChangedHandler);
 		
-		const onCreatureMissHandler = new CreatureMissCallback(this.onCreatureMissedHit.bind(this));
-		this.combatSystem.addCreatureOnMissHandler(onCreatureMissHandler);
+		const creatureOnMissHandler = new CreatureMissCallback(this.onCreatureMissedHit.bind(this));
+		this.combatSystem.addCreatureOnMissHandler(creatureOnMissHandler);
 
-		const onCreatureFullDefHandler = new CreatureFullDefCallback(this.onCreatureGotFullDef.bind(this));
-		this.combatSystem.addCreatureOnFullDefHandler(onCreatureFullDefHandler);
+		const creatureOnFullDefHandler = new CreatureFullDefCallback(this.onCreatureGotFullDef.bind(this));
+		this.combatSystem.addCreatureOnFullDefHandler(creatureOnFullDefHandler);
 
-		const onCreatureCritReceivedHandler = new CreatureCritReceivedCallback(this.onCreatureCritReceived.bind(this));
-		this.combatSystem.addCreatureOnCritReceivedHandler(onCreatureCritReceivedHandler);
+		const creatureOnCritReceivedHandler = new CreatureCritReceivedCallback(this.onCreatureCritReceived.bind(this));
+		this.combatSystem.addCreatureOnCritReceivedHandler(creatureOnCritReceivedHandler);
 
-		const onCreatureKilledHandler = new CreatureKilledCallback(this.onCreatureKilled.bind(this));
-		this.combatSystem.addCreatureOnKilledHandler(onCreatureKilledHandler);
+		const creatureOnKilledHandler = new CreatureKilledCallback(this.onCreatureKilled.bind(this));
+		this.combatSystem.addCreatureOnKilledHandler(creatureOnKilledHandler);
+
+		const effectOnPlayRequestedHandler = new EffectPlayRequestedCallback(this.onEffectPlayRequested.bind(this));
+		this.combatSystem.addEffectOnPlayRequestedHandler(effectOnPlayRequestedHandler);
 		
 		this.setSimulationInterval(() =>
 		{
@@ -152,16 +171,11 @@ export class TestRoom extends Room
 
 		this.creatures[creature.id] = creature;
 
-		const otherClientsMessage = {
+		const broadcastMessage = {
 			'message': 'addCreature',
 			'creature': creature
 		};
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const otherClient = this.clients[i];
-			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
-			this.send(otherClient, otherClientsMessage);
-		}
+		this.broadcast(broadcastMessage, client.sessionId);
 
 		client.isLoaded = true;
 	}
@@ -170,49 +184,42 @@ export class TestRoom extends Room
 	{
 		this.combatSystem.setCreatureMovement(client.sessionId, data.movementX, data.movementY);
 
-		const otherClientsMessage = {
+		const broadcastMessage = {
 			'message': 'movement',
 			'creatureID': client.sessionId,
 			'movementX': data.movementX,
 			'movementY': data.movementY
 		};
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const otherClient = this.clients[i];
-			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
-			this.send(otherClient, otherClientsMessage);
-		}
+		this.broadcast(broadcastMessage, client.sessionId);
 	}
 
 	handleWeaponSwap(client: Client, data: any)
 	{
 		this.combatSystem.swapCreatureWeapon(client.sessionId);
 
-		const otherClientsMessage = { 'message': 'swapWeapon', 'creatureID': client.sessionId };
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const otherClient = this.clients[i];
-			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
-			this.send(otherClient, otherClientsMessage);
-		}
+		const broadcastMessage = { 'message': 'swapWeapon', 'creatureID': client.sessionId };
+		this.broadcast(broadcastMessage, client.sessionId);
+	}
+
+	handleAmmoSwap(client: Client, data: any)
+	{
+		this.combatSystem.swapCreatureAmmo(client.sessionId);
+
+		const broadcastMessage = { 'message': 'swapAmmo', 'creatureID': client.sessionId };
+		this.broadcast(broadcastMessage, client.sessionId);
 	}
 
 	handlePlayerUsedSpell(client: Client, data: any)
 	{
 		this.combatSystem.setCreatureUsedSpell(client.sessionId, data.spellID, new Vector2(data.position.x, data.position.y));
 
-		const otherClientsMessage = {
+		const broadcastMessage = {
 			'message': 'spellUsed',
 			'creatureID': client.sessionId,
 			'spellID': data.spellID,
 			'position': { 'x': data.position.x, 'y': data.position.y }
 		};
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const otherClient = this.clients[i];
-			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
-			this.send(otherClient, otherClientsMessage);
-		}
+		this.broadcast(broadcastMessage, client.sessionId);
 	}
 
 	addCreature(creatureID: string, combatData: object)
@@ -234,7 +241,7 @@ export class TestRoom extends Room
 		this.combatSystem.setCreaturePosition(creatureID, this.combatSystem.makeCreaturePositionForTileCoords(tileX, tileY));
 	}
 
-	onCreatureHPChanged(creatureID: string, currentHP: number, totalHP: number, changeType: AbilityChangeSource)
+	onCreatureHPChanged(creatureID: string, currentHP: number, totalHP: number, changeType: number)
 	{
 		if (!this.creatures) return;
 		const creature = this.creatures[creatureID];
@@ -244,28 +251,13 @@ export class TestRoom extends Room
 		creature.HP.current = currentHP;		
 		creature.HP.total = totalHP;
 
-		let changeTypeIndex = 0;
-		const acs = AbilityChangeSource;
-		for (let i in acs.values)
-		{
-			if (changeType = acs.values[i]) changeTypeIndex = parseInt(i);
-		}
-
 		const message = {
-			'message': 'HPChanged',
+			'message': 'abilityChanged',
 			'creatureID': creatureID,
-			'currentHP': currentHP,
-			'totalHP': totalHP,
-			'changeType': changeTypeIndex
+			'HP': { 'current': currentHP, 'total': totalHP },
+			'changeType': changeType
 		};
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const client = this.clients[i];
-			if (client.isLoaded)
-			{
-				this.send(client, message);
-			}
-		}
+		this.broadcast(message);
 	}
 
 	onCreatureMPChanged(creatureID: string, currentMP: number, totalMP: number, changeType: AbilityChangeSource)
@@ -292,68 +284,44 @@ export class TestRoom extends Room
 			'totalMP': totalMP,
 			'changeType': changeTypeIndex
 		};
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const client = this.clients[i];
-			if (client.isLoaded)
-			{
-				this.send(client, message);
-			}
-		}
+		this.broadcast(message);
 	}
 
 	onCreatureMissedHit(creatureID: string)
 	{
 		const message = { 'message': 'miss', 'creatureID': creatureID };
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const client = this.clients[i];
-			if (client.isLoaded)
-			{
-				this.send(client, message);
-			}
-		}
+		this.broadcast(message);
 	}
 
 	onCreatureGotFullDef(creatureID: string)
 	{
 		const message = { 'message': 'fullDef', 'creatureID': creatureID };
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const client = this.clients[i];
-			if (client.isLoaded)
-			{
-				this.send(client, message);
-			}
-		}
+		this.broadcast(message);
 	}
 
 	onCreatureCritReceived(creatureID: string, damage: number)
 	{
 		const message = { 'message': 'crit', 'creatureID': creatureID, 'damage': damage };
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const client = this.clients[i];
-			if (client.isLoaded)
-			{
-				this.send(client, message);
-			}
-		}
+		this.broadcast(message);
 	}
 
 	onCreatureKilled(killerCreatureID: string, killedCreatureID: string)
 	{
 		delete this.creatures[killedCreatureID];
-	
 		const message = { 'message': 'creatureKilled', 'killerCreatureID': killerCreatureID, 'killedCreatureID': killedCreatureID };
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const client = this.clients[i];
-			if (client.isLoaded)
-			{
-				this.send(client, message);
-			}
-		}
+		this.broadcast(message);
+	}
+
+	onEffectPlayRequested(effectID: string, effectObjectID: number, position: Vector2, floor: number, direction: Vector2)
+	{
+		const message = {
+			'message': 'effectRequested',
+			'effectID': effectID,
+			'effectObjectID': effectObjectID,
+			'position': { 'x': position.x, 'y': position.y, 'z': floor },
+			'direction': { 'x': direction.x, 'y': direction.y }
+		};
+		this.broadcast(message);
 	}
 
 	makeCreatureCombatDataFromPlainObject(data: object)
