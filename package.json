@@ -4,7 +4,7 @@
 	"description": "Test Colyseus server",
 	"main": "server.js",
 	"scripts": {
-		"start": "ts-node server.ts"
+		"start": "if test \"$NODE_ENV\" = \"production\"; then ts-node server.ts; else nodemon --watch '**/*' --exec ts-node server.ts; fi"
 	},
 	"author": "Stranger",
 	"dependencies": {
