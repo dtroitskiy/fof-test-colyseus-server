@@ -40,13 +40,8 @@ export class TestRoom extends Room
 		this.combatSystem.removeCreature(client.sessionId);
 		delete this.creatures[client.sessionId];
 	
-		const otherClientsMessage = { 'message': 'removeCreature', 'creatureID': client.sessionId };
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const otherClient = this.clients[i];
-			if (!otherClient.isLoaded || client.sessionId == otherClient.sessionId) continue;
-			this.send(otherClient, otherClientsMessage);
-		}
+		const broadcastMessage = { 'message': 'removeCreature', 'creatureID': client.sessionId };
+		this.broadcast(broadcastMessage, client.sessionId);
 	}
 
 	onMessage(client: Client, data: any)
@@ -260,7 +255,7 @@ export class TestRoom extends Room
 		this.broadcast(message);
 	}
 
-	onCreatureMPChanged(creatureID: string, currentMP: number, totalMP: number, changeType: AbilityChangeSource)
+	onCreatureMPChanged(creatureID: string, currentMP: number, totalMP: number, changeType: number)
 	{
 		if (!this.creatures) return;
 		const creature = this.creatures[creatureID];
@@ -270,19 +265,11 @@ export class TestRoom extends Room
 		creature.MP.current = currentMP;		
 		creature.MP.total = totalMP;
 
-		let changeTypeIndex = 0;
-		const acs = AbilityChangeSource;
-		for (let i in acs.values)
-		{
-			if (changeType = acs.values[i]) changeTypeIndex = parseInt(i);
-		}
-
 		const message = {
-			'message': 'MPChanged',
+			'message': 'abilityChanged',
 			'creatureID': creatureID,
-			'currentMP': currentMP,
-			'totalMP': totalMP,
-			'changeType': changeTypeIndex
+			'MP': { 'current': currentMP, 'total': totalMP },
+			'changeType': changeType
 		};
 		this.broadcast(message);
 	}
@@ -391,14 +378,7 @@ export class TestRoom extends Room
 		}
 
 		const message = { 'message': 'sync', 'syncData': syncData };
-		for (let i = 0; i < this.clients.length; ++i)
-		{
-			const client = this.clients[i];
-			if (client.isLoaded)
-			{
-				this.send(client, message);
-			}
-		}
+		this.broadcast(message);
 	}
 
 	update(dt: number)
