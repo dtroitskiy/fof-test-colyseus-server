@@ -1,4 +1,5 @@
 import { Room, Client } from 'colyseus';
+import { Movement, Position, ChangingAbility, CombatData, Creature, CombatState } from '../states/combat';
 import { Loader } from '../loader';
 import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, CombatEquipment, CombatSpell, VectorCombatSpell,
          CombatTalent, VectorCombatTalent, AbilityChangeSource, CreatureHPChangedCallback, CreatureMPChangedCallback,
@@ -8,6 +9,8 @@ import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbil
 export class TestRoom extends Room
 {
 	static SYNC_INTERVAL: number = 1000;
+
+	state: CombatState;
 
 	isLoaded: boolean = false;
 
@@ -38,10 +41,7 @@ export class TestRoom extends Room
 		console.log(`Client ${client.sessionId} left TestRoom.`);
 		
 		this.combatSystem.removeCreature(client.sessionId);
-		delete this.creatures[client.sessionId];
-	
-		const broadcastMessage = { 'message': 'removeCreature', 'creatureID': client.sessionId };
-		this.broadcast(broadcastMessage, client.sessionId);
+		delete this.state.creatures[client.sessionId];
 	}
 
 	onMessage(client: Client, data: any)
@@ -96,16 +96,13 @@ export class TestRoom extends Room
 
 		const creatureOnHPChangedHandler = new CreatureHPChangedCallback(this.onCreatureHPChanged.bind(this));
 		this.combatSystem.addCreatureOnHPChangedHandler(creatureOnHPChangedHandler);
-		
 		const creatureOnMPChangedHandler = new CreatureMPChangedCallback(this.onCreatureMPChanged.bind(this));
 		this.combatSystem.addCreatureOnMPChangedHandler(creatureOnMPChangedHandler);
 		
 		const creatureOnMissHandler = new CreatureMissCallback(this.onCreatureMissedHit.bind(this));
 		this.combatSystem.addCreatureOnMissHandler(creatureOnMissHandler);
-
 		const creatureOnFullDefHandler = new CreatureFullDefCallback(this.onCreatureGotFullDef.bind(this));
 		this.combatSystem.addCreatureOnFullDefHandler(creatureOnFullDefHandler);
-
 		const creatureOnCritReceivedHandler = new CreatureCritReceivedCallback(this.onCreatureCritReceived.bind(this));
 		this.combatSystem.addCreatureOnCritReceivedHandler(creatureOnCritReceivedHandler);
 
@@ -114,12 +111,14 @@ export class TestRoom extends Room
 
 		const effectOnPlayRequestedHandler = new EffectPlayRequestedCallback(this.onEffectPlayRequested.bind(this));
 		this.combatSystem.addEffectOnPlayRequestedHandler(effectOnPlayRequestedHandler);
-		
+
+		this.setState(new CombatState());
+		// TODO: enable if precise positioning will be needed
+		// this.setPatchRate(1000 / 60);
 		this.setSimulationInterval(() =>
 		{
 			this.update(this.clock.deltaTime / 1000);
 		});
-
 		this.clock.setInterval(this.sync.bind(this), TestRoom.SYNC_INTERVAL);
 		
 		this.isLoaded = true;
@@ -127,50 +126,22 @@ export class TestRoom extends Room
 
 	handlePlayerAdd(client: Client, data: any)
 	{
-		const creature = {
-			'id': client.sessionId,
-			'combatData': data.combatData,
-			'position': null,
-			'HP': { 'current': 0, 'total': 0 },
-			'MP': { 'current': 0, 'total': 0 }
-		};
-
-		this.addCreature(creature.id, data.combatData);
-				
-		const floor = this.combatSystem.getCreatureFloor(creature.id);
-		const pos = this.combatSystem.getCreaturePosition(creature.id);
-		creature.position = { 'x': pos.x, 'y': pos.y, 'z': floor };
-		creature.HP.current = this.combatSystem.getCreatureCurrentHP(creature.id);
-		creature.HP.total = this.combatSystem.getCreatureTotalHP(creature.id);
-		creature.MP.current = this.combatSystem.getCreatureCurrentMP(creature.id);
-		creature.MP.total = this.combatSystem.getCreatureTotalMP(creature.id);
-
-		this.send(client, { 'message': 'addSelf', 'creature': creature });
+		const creatureID = client.sessionId;
 		
-		if (this.creatures)
-		{
-			for (let id in this.creatures)
-			{
-				const creature = this.creatures[id];
-				creature.position.z = this.combatSystem.getCreatureFloor(creature.id);
-				const pos = this.combatSystem.getCreaturePosition(creature.id);
-				creature.position.x = pos.x;
-				creature.position.y = pos.y;
-			}
-			this.send(client, { 'message': 'addCreatures', 'creatures': this.creatures });
-		}
-		else
-		{
-			this.creatures = {};
-		}
+		this.addCreature(creatureID, data.combatData);
+		
+		const floor = this.combatSystem.getCreatureFloor(creatureID);
+		const pos = this.combatSystem.getCreaturePosition(creatureID);
 
-		this.creatures[creature.id] = creature;
+		const creature = new Creature();
+		creature.id = creatureID;
+		creature.combatData = new CombatData(data.combatData);
+		creature.movement = new Movement(0, 0);
+		creature.position = new Position(pos.x, pos.y, floor);
+		creature.HP = new ChangingAbility(this.combatSystem.getCreatureCurrentHP(creatureID), this.combatSystem.getCreatureTotalHP(creatureID));
+		creature.MP = new ChangingAbility(this.combatSystem.getCreatureCurrentMP(creatureID), this.combatSystem.getCreatureTotalMP(creatureID));
 
-		const broadcastMessage = {
-			'message': 'addCreature',
-			'creature': creature
-		};
-		this.broadcast(broadcastMessage, client.sessionId);
+		this.state.creatures[creatureID] = creature;
 
 		client.isLoaded = true;
 	}
@@ -178,14 +149,9 @@ export class TestRoom extends Room
 	handleMovement(client: Client, data: any)
 	{
 		this.combatSystem.setCreatureMovement(client.sessionId, data.movementX, data.movementY);
-
-		const broadcastMessage = {
-			'message': 'movement',
-			'creatureID': client.sessionId,
-			'movementX': data.movementX,
-			'movementY': data.movementY
-		};
-		this.broadcast(broadcastMessage, client.sessionId);
+		const creatureMovement = this.state.creatures[client.sessionId].movement;
+		creatureMovement.x = data.movementX;
+		creatureMovement.y = data.movementY;
 	}
 
 	handleWeaponSwap(client: Client, data: any)
@@ -239,20 +205,13 @@ export class TestRoom extends Room
 	onCreatureHPChanged(creatureID: string, currentHP: number, totalHP: number, changeType: number)
 	{
 		if (!this.creatures) return;
-		const creature = this.creatures[creatureID];
+		const creature = this.state.creatures[creatureID];
 		if (!creature) return;
 		if (creature.HP.current == currentHP && creature.HP.total == totalHP) return;
 
-		creature.HP.current = currentHP;		
+		creature.HP.current = currentHP;
 		creature.HP.total = totalHP;
-
-		const message = {
-			'message': 'abilityChanged',
-			'creatureID': creatureID,
-			'HP': { 'current': currentHP, 'total': totalHP },
-			'changeType': changeType
-		};
-		this.broadcast(message);
+		creature.HP.changeType = changeType;
 	}
 
 	onCreatureMPChanged(creatureID: string, currentMP: number, totalMP: number, changeType: number)
@@ -262,16 +221,9 @@ export class TestRoom extends Room
 		if (!creature) return;
 		if (creature.MP.current == currentMP && creature.MP.total == totalMP) return;
 
-		creature.MP.current = currentMP;		
+		creature.MP.current = currentMP;
 		creature.MP.total = totalMP;
-
-		const message = {
-			'message': 'abilityChanged',
-			'creatureID': creatureID,
-			'MP': { 'current': currentMP, 'total': totalMP },
-			'changeType': changeType
-		};
-		this.broadcast(message);
+		creature.MP.changeType = changeType;
 	}
 
 	onCreatureMissedHit(creatureID: string)
@@ -362,23 +314,15 @@ export class TestRoom extends Room
 
 	sync()
 	{
-		if (!this.creatures) return;
-
-		const syncData = [];
-		for (let id in this.creatures)
+		const creatures = this.state.creatures;
+		for (let id in creatures)
 		{
-			const creature = this.creatures[id];
+			const creature = creatures[id];
 			creature.position.z = this.combatSystem.getCreatureFloor(creature.id);
 			const pos = this.combatSystem.getCreaturePosition(creature.id);
 			creature.position.x = pos.x;
 			creature.position.y = pos.y;
-
-			const sd = { 'creatureID': id, 'position': creature.position };
-			syncData.push(sd);
 		}
-
-		const message = { 'message': 'sync', 'syncData': syncData };
-		this.broadcast(message);
 	}
 
 	update(dt: number)
