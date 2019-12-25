@@ -1,5 +1,5 @@
 import { Room, Client } from 'colyseus';
-import { CombatData, Movement, Position, SelectedEquipment, ChangingAbility, Creature, CombatState } from '../states/combat';
+import { CombatData, Movement, Position, Direction, SelectedEquipment, ChangingAbility, Creature, CombatState } from '../states/combat';
 import { Loader } from '../loader';
 import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, CombatEquipment, CombatSpell, VectorCombatSpell,
          CombatTalent, VectorCombatTalent, AbilityChangeSource, CreatureHPChangedCallback, CreatureMPChangedCallback,
@@ -16,8 +16,6 @@ export class TestRoom extends Room
 
 	universalTileMap: UniversalTileMap = null;
 	combatSystem: CombatSystem = null;
-
-	creatures: object = null;
 
 	onCreate(options: any)
 	{
@@ -138,6 +136,7 @@ export class TestRoom extends Room
 		creature.combatData = new CombatData(data.combatData);
 		creature.movement = new Movement(0, 0);
 		creature.position = new Position(pos.x, pos.y, floor);
+		creature.lookDirection = new Direction(0, -1);
 		creature.selectedWeapon = new SelectedEquipment(true);
 		creature.selectedAmmo = new SelectedEquipment(true);
 		creature.HP = new ChangingAbility(this.combatSystem.getCreatureCurrentHP(creatureID), this.combatSystem.getCreatureTotalHP(creatureID));
@@ -204,7 +203,6 @@ export class TestRoom extends Room
 
 	onCreatureHPChanged(creatureID: string, currentHP: number, totalHP: number, changeType: number)
 	{
-		if (!this.creatures) return;
 		const creature = this.state.creatures[creatureID];
 		if (!creature) return;
 		if (creature.HP.current == currentHP && creature.HP.total == totalHP) return;
@@ -216,8 +214,7 @@ export class TestRoom extends Room
 
 	onCreatureMPChanged(creatureID: string, currentMP: number, totalMP: number, changeType: number)
 	{
-		if (!this.creatures) return;
-		const creature = this.creatures[creatureID];
+		const creature = this.state.creatures[creatureID];
 		if (!creature) return;
 		if (creature.MP.current == currentMP && creature.MP.total == totalMP) return;
 
@@ -246,7 +243,7 @@ export class TestRoom extends Room
 
 	onCreatureKilled(killerCreatureID: string, killedCreatureID: string)
 	{
-		delete this.creatures[killedCreatureID];
+		delete this.state.creatures[killedCreatureID];
 		const message = { 'message': 'creatureKilled', 'killerCreatureID': killerCreatureID, 'killedCreatureID': killedCreatureID };
 		this.broadcast(message);
 	}
@@ -322,6 +319,9 @@ export class TestRoom extends Room
 			const pos = this.combatSystem.getCreaturePosition(creature.id);
 			creature.position.x = pos.x;
 			creature.position.y = pos.y;
+			const dir = this.combatSystem.getCreatureLookDirection(creature.id);
+			creature.lookDirection.x = dir.x;
+			creature.lookDirection.y = dir.y;
 		}
 	}
 

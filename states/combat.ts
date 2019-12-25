@@ -239,6 +239,22 @@ export class Position extends Schema
 	}
 }
 
+export class Direction extends Schema
+{
+	@type('float32')
+	x: number;
+
+	@type('float32')
+	y: number;
+
+	constructor(x: number, y: number)
+	{
+		super();
+		this.x = x;
+		this.y = y;
+	}
+}
+
 export class SelectedEquipment extends Schema
 {
 	@type('boolean')
@@ -283,6 +299,9 @@ export class Creature extends Schema
 
 	@type(Position)
 	position: Position;
+
+	@type(Direction)
+	lookDirection: Direction;
 
 	@type(SelectedEquipment)
 	selectedWeapon: SelectedEquipment;
