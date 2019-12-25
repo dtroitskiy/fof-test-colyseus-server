@@ -1,5 +1,5 @@
 import { Room, Client } from 'colyseus';
-import { Movement, Position, ChangingAbility, CombatData, Creature, CombatState } from '../states/combat';
+import { CombatData, Movement, Position, SelectedEquipment, ChangingAbility, Creature, CombatState } from '../states/combat';
 import { Loader } from '../loader';
 import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, CombatEquipment, CombatSpell, VectorCombatSpell,
          CombatTalent, VectorCombatTalent, AbilityChangeSource, CreatureHPChangedCallback, CreatureMPChangedCallback,
@@ -138,6 +138,8 @@ export class TestRoom extends Room
 		creature.combatData = new CombatData(data.combatData);
 		creature.movement = new Movement(0, 0);
 		creature.position = new Position(pos.x, pos.y, floor);
+		creature.selectedWeapon = new SelectedEquipment(true);
+		creature.selectedAmmo = new SelectedEquipment(true);
 		creature.HP = new ChangingAbility(this.combatSystem.getCreatureCurrentHP(creatureID), this.combatSystem.getCreatureTotalHP(creatureID));
 		creature.MP = new ChangingAbility(this.combatSystem.getCreatureCurrentMP(creatureID), this.combatSystem.getCreatureTotalMP(creatureID));
 
@@ -157,17 +159,15 @@ export class TestRoom extends Room
 	handleWeaponSwap(client: Client, data: any)
 	{
 		this.combatSystem.swapCreatureWeapon(client.sessionId);
-
-		const broadcastMessage = { 'message': 'swapWeapon', 'creatureID': client.sessionId };
-		this.broadcast(broadcastMessage, client.sessionId);
+		const creature = this.state.creatures[client.sessionId];
+		creature.selectedWeapon.isPrimary = this.combatSystem.hasCreaturePrimaryWeaponSelected(client.sessionId);
 	}
 
 	handleAmmoSwap(client: Client, data: any)
 	{
 		this.combatSystem.swapCreatureAmmo(client.sessionId);
-
-		const broadcastMessage = { 'message': 'swapAmmo', 'creatureID': client.sessionId };
-		this.broadcast(broadcastMessage, client.sessionId);
+		const creature = this.state.creatures[client.sessionId];
+		creature.selectedAmmo.isPrimary = this.combatSystem.hasCreaturePrimaryAmmoSelected(client.sessionId);
 	}
 
 	handlePlayerUsedSpell(client: Client, data: any)

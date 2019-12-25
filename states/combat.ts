@@ -239,6 +239,18 @@ export class Position extends Schema
 	}
 }
 
+export class SelectedEquipment extends Schema
+{
+	@type('boolean')
+	isPrimary: boolean;
+
+	constructor(isPrimary)
+	{
+		super();
+		this.isPrimary = isPrimary;
+	}
+}
+
 export class ChangingAbility extends Schema
 {
 	@type('float32')
@@ -271,6 +283,12 @@ export class Creature extends Schema
 
 	@type(Position)
 	position: Position;
+
+	@type(SelectedEquipment)
+	selectedWeapon: SelectedEquipment;
+
+	@type(SelectedEquipment)
+	selectedAmmo: SelectedEquipment;
 
 	@type(ChangingAbility)
 	HP: ChangingAbility;
