@@ -203,22 +203,6 @@ export class CombatData extends Schema
 	}
 }
 
-export class Movement extends Schema
-{
-	@type('int8')
-	x: number;
-
-	@type('int8')
-	y: number;
-
-	constructor(x: number, y: number)
-	{
-		super();
-		this.x = x;
-		this.y = y;
-	}
-}
-
 export class Position extends Schema
 {
 	@type('float32')
@@ -294,11 +278,16 @@ export class Creature extends Schema
 	@type(CombatData)
 	combatData: CombatData;
 
-	@type(Movement)
-	movement: Movement;
-
 	@type(Position)
 	position: Position;
+
+	lastValidPosition: Position;
+
+	// this variable is not synced
+	lastPositionValidationTime: number = 0;
+
+	@type(Direction)
+	movementDirection: Direction;
 
 	@type(Direction)
 	lookDirection: Direction;

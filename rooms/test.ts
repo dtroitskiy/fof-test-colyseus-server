@@ -1,14 +1,15 @@
 import { Room, Client } from 'colyseus';
-import { CombatData, Movement, Position, Direction, SelectedEquipment, ChangingAbility, Creature, CombatState } from '../states/combat';
+import { CombatData, Position, Direction, SelectedEquipment, ChangingAbility, Creature, CombatState } from '../states/combat';
 import { Loader } from '../loader';
 import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, CombatEquipment, CombatSpell, VectorCombatSpell,
          CombatTalent, VectorCombatTalent, AbilityChangeSource, CreatureHPChangedCallback, CreatureMPChangedCallback,
          CreatureMissCallback, CreatureFullDefCallback, CreatureCritReceivedCallback, CreatureKilledCallback,
-         EffectPlayRequestedCallback  } from '../FoFcombat/FoFcombat';
+         EffectPlayRequestedCallback, FoFSprite } from '../FoFcombat/FoFcombat';
 
 export class TestRoom extends Room
 {
-	static SYNC_INTERVAL: number = 1000;
+	static POSITION_VALIDATION_INTERVAL: number = 0.2;
+	static POSITION_VALIDATION_ERROR_FACTOR: number = 1.2;
 
 	state: CombatState;
 
@@ -16,6 +17,8 @@ export class TestRoom extends Room
 
 	universalTileMap: UniversalTileMap = null;
 	combatSystem: CombatSystem = null;
+
+	totalTime: number = 0;
 
 	onCreate(options: any)
 	{
@@ -42,15 +45,15 @@ export class TestRoom extends Room
 		delete this.state.creatures[client.sessionId];
 	}
 
-	onMessage(client: Client, data: any)
+	onMessage(client: Client, data: object)
 	{
 		switch (data.message)
 		{
 			case 'addPlayer':
 				this.handlePlayerAdd(client, data);
 			break;
-			case 'movement':
-				this.handleMovement(client, data);
+			case 'position':
+				this.handlePosition(client, data);
 			break;
 			case 'swapWeapon':
 				this.handleWeaponSwap(client, data);
@@ -111,18 +114,16 @@ export class TestRoom extends Room
 		this.combatSystem.addEffectOnPlayRequestedHandler(effectOnPlayRequestedHandler);
 
 		this.setState(new CombatState());
-		// TODO: enable if precise positioning will be needed
-		// this.setPatchRate(1000 / 60);
+		this.setPatchRate(1000 / 60);
 		this.setSimulationInterval(() =>
 		{
 			this.update(this.clock.deltaTime / 1000);
 		});
-		this.clock.setInterval(this.sync.bind(this), TestRoom.SYNC_INTERVAL);
 		
 		this.isLoaded = true;
 	}
 
-	handlePlayerAdd(client: Client, data: any)
+	handlePlayerAdd(client: Client, data: object)
 	{
 		const creatureID = client.sessionId;
 		
@@ -134,8 +135,9 @@ export class TestRoom extends Room
 		const creature = new Creature();
 		creature.id = creatureID;
 		creature.combatData = new CombatData(data.combatData);
-		creature.movement = new Movement(0, 0);
 		creature.position = new Position(pos.x, pos.y, floor);
+		creature.lastValidPosition = new Position(pos.x, pos.y, floor);
+		creature.movementDirection = new Direction(0, 0);
 		creature.lookDirection = new Direction(0, -1);
 		creature.selectedWeapon = new SelectedEquipment(true);
 		creature.selectedAmmo = new SelectedEquipment(true);
@@ -147,29 +149,70 @@ export class TestRoom extends Room
 		client.isLoaded = true;
 	}
 
-	handleMovement(client: Client, data: any)
+	handlePosition(client: Client, data: object)
 	{
-		this.combatSystem.setCreatureMovement(client.sessionId, data.movementX, data.movementY);
-		const creatureMovement = this.state.creatures[client.sessionId].movement;
-		creatureMovement.x = data.movementX;
-		creatureMovement.y = data.movementY;
+		const creature = this.state.creatures[client.sessionId];
+		
+		// we validate creature movement here by two conditions:
+		// it can't be that creature instantly moved for distance more than one tile
+		// and movement within defined validation period can't exceed its maximum allowed movement, considering its speed
+		let isRejected = false;
+		// first check
+		const distance = new Vector2(data.position.x - creature.position.x, data.position.y - creature.position.y).length;
+		if (distance >= FoFSprite.SIZE)
+		{
+			isRejected = true;
+		}
+		// second check
+		if (this.totalTime - creature.lastPositionValidationTime >= TestRoom.POSITION_VALIDATION_INTERVAL)
+		{
+			const dt = this.totalTime - creature.lastPositionValidationTime;
+			const distance = new Vector2(data.position.x - creature.lastValidPosition.x, data.position.y - creature.lastValidPosition.y).length;
+			const maxDistance = creature.combatData.abilities.moveSpeed * dt * TestRoom.POSITION_VALIDATION_ERROR_FACTOR;
+			if (distance >= maxDistance)
+			{
+				isRejected = true;
+			}
+			creature.lastValidPosition.x = data.position.x;
+			creature.lastValidPosition.y = data.position.y;
+			creature.lastPositionValidationTime = this.totalTime;
+		}
+		
+		if (isRejected)
+		{
+			this.send(client, { 'message': 'positionRejected' });
+		}
+		else
+		{
+			this.combatSystem.setCreaturePosition(client.sessionId, new Vector2(data.position.x, data.position.y));
+			creature.position.x = data.position.x;
+			creature.position.y = data.position.y;
+			const dir = data.direction;
+			creature.movementDirection.x = dir.x;
+			creature.movementDirection.y = dir.y;
+			if (dir.x != 0 || dir.y != 0)
+			{
+				creature.lookDirection.x = dir.x;
+				creature.lookDirection.y = dir.y;
+			}
+		}
 	}
 
-	handleWeaponSwap(client: Client, data: any)
+	handleWeaponSwap(client: Client, data: object)
 	{
 		this.combatSystem.swapCreatureWeapon(client.sessionId);
 		const creature = this.state.creatures[client.sessionId];
 		creature.selectedWeapon.isPrimary = this.combatSystem.hasCreaturePrimaryWeaponSelected(client.sessionId);
 	}
 
-	handleAmmoSwap(client: Client, data: any)
+	handleAmmoSwap(client: Client, data: object)
 	{
 		this.combatSystem.swapCreatureAmmo(client.sessionId);
 		const creature = this.state.creatures[client.sessionId];
 		creature.selectedAmmo.isPrimary = this.combatSystem.hasCreaturePrimaryAmmoSelected(client.sessionId);
 	}
 
-	handlePlayerUsedSpell(client: Client, data: any)
+	handlePlayerUsedSpell(client: Client, data: object)
 	{
 		this.combatSystem.setCreatureUsedSpell(client.sessionId, data.spellID, new Vector2(data.position.x, data.position.y));
 
@@ -309,24 +352,9 @@ export class TestRoom extends Room
 		return combatData;
 	}
 
-	sync()
-	{
-		const creatures = this.state.creatures;
-		for (let id in creatures)
-		{
-			const creature = creatures[id];
-			creature.position.z = this.combatSystem.getCreatureFloor(creature.id);
-			const pos = this.combatSystem.getCreaturePosition(creature.id);
-			creature.position.x = pos.x;
-			creature.position.y = pos.y;
-			const dir = this.combatSystem.getCreatureLookDirection(creature.id);
-			creature.lookDirection.x = dir.x;
-			creature.lookDirection.y = dir.y;
-		}
-	}
-
 	update(dt: number)
 	{
+		this.totalTime += dt;
 		this.combatSystem.update(dt);
 	}
 }
