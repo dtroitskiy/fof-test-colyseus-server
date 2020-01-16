@@ -8,6 +8,7 @@ import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbil
 
 export class TestRoom extends Room
 {
+	static POSITION_VALIDATION_ENABLED = true;
 	static POSITION_VALIDATION_INTERVAL: number = 0.2;
 	static POSITION_VALIDATION_ERROR_FACTOR: number = 1.2;
 
@@ -153,38 +154,43 @@ export class TestRoom extends Room
 	{
 		const creature = this.state.creatures[client.sessionId];
 		
-		// we validate creature movement here by two conditions:
-		// it can't be that creature instantly moved for distance more than one tile
-		// and movement within defined validation period can't exceed its maximum allowed movement, considering its speed
 		let isRejected = false;
-		// first check
-		const distance = new Vector2(data.position.x - creature.position.x, data.position.y - creature.position.y).length;
-		if (distance >= FoFSprite.SIZE)
+
+		if (TestRoom.POSITION_VALIDATION_ENABLED)
 		{
-			isRejected = true;
-		}
-		// second check
-		if (this.totalTime - creature.lastPositionValidationTime >= TestRoom.POSITION_VALIDATION_INTERVAL)
-		{
-			const dt = this.totalTime - creature.lastPositionValidationTime;
-			const distance = new Vector2(data.position.x - creature.lastValidPosition.x, data.position.y - creature.lastValidPosition.y).length;
-			const maxDistance = creature.combatData.abilities.moveSpeed * dt * TestRoom.POSITION_VALIDATION_ERROR_FACTOR;
-			if (distance >= maxDistance)
+			// we validate creature movement here by two conditions:
+			// it can't be that creature instantly moved for distance more than one tile
+			// and movement within defined validation period can't exceed its maximum allowed movement, considering its speed
+
+			// first check
+			const distance = new Vector2(data.position.x - creature.position.x, data.position.y - creature.position.y).length;
+			if (distance >= FoFSprite.SIZE)
 			{
 				isRejected = true;
 			}
-			creature.lastValidPosition.x = data.position.x;
-			creature.lastValidPosition.y = data.position.y;
-			creature.lastPositionValidationTime = this.totalTime;
+			// second check
+			else if (this.totalTime - creature.lastPositionValidationTime >= TestRoom.POSITION_VALIDATION_INTERVAL)
+			{
+				const dt = this.totalTime - creature.lastPositionValidationTime;
+				const distance = new Vector2(data.position.x - creature.lastValidPosition.x, data.position.y - creature.lastValidPosition.y).length;
+				const maxDistance = creature.combatData.abilities.moveSpeed * dt * TestRoom.POSITION_VALIDATION_ERROR_FACTOR;
+				if (distance >= maxDistance)
+				{
+					isRejected = true;
+				}
+				creature.lastValidPosition.x = data.position.x;
+				creature.lastValidPosition.y = data.position.y;
+				creature.lastPositionValidationTime = this.totalTime;
+			}
 		}
 		
-		if (isRejected)
+		if (!isRejected)
 		{
-			this.send(client, { 'message': 'positionRejected' });
+			isRejected = !this.combatSystem.setCreaturePosition(client.sessionId, new Vector2(data.position.x, data.position.y));
 		}
-		else
+
+		if (!isRejected)
 		{
-			this.combatSystem.setCreaturePosition(client.sessionId, new Vector2(data.position.x, data.position.y));
 			creature.position.x = data.position.x;
 			creature.position.y = data.position.y;
 			const dir = data.direction;
@@ -195,6 +201,10 @@ export class TestRoom extends Room
 				creature.lookDirection.x = dir.x;
 				creature.lookDirection.y = dir.y;
 			}
+		}
+		else
+		{
+			this.send(client, { 'message': 'positionRejected' });
 		}
 	}
 
