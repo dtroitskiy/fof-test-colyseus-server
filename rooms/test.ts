@@ -297,9 +297,9 @@ export class TestRoom extends Room
 
 	onCreatureKilled(killerCreatureID: string, killedCreatureID: string)
 	{
-		delete this.state.creatures[killedCreatureID];
 		const message = { 'message': 'creatureKilled', 'killerCreatureID': killerCreatureID, 'killedCreatureID': killedCreatureID };
 		this.broadcast(message);
+		delete this.state.creatures[killedCreatureID];
 	}
 
 	onEffectPlayRequested(effectID: string, effectObjectID: number, position: Vector2, floor: number, direction: Vector2)
