@@ -1,6 +1,6 @@
 import { Schema, ArraySchema, MapSchema, type } from "@colyseus/schema";
 
-class Abilities extends Schema
+class AbilitiesSchema extends Schema
 {
 	@type('float32')
 	HP: nubmer;
@@ -63,7 +63,7 @@ class Abilities extends Schema
 	}
 }
 
-class Equipment extends Schema
+class EquipmentSchema extends Schema
 {
 	@type('uint32')
 	id: number;
@@ -126,7 +126,7 @@ class Equipment extends Schema
 	}
 }
 
-class Spell extends Schema
+class SpellSchema extends Schema
 {
 	@type('uint32')
 	id: number;
@@ -142,7 +142,7 @@ class Spell extends Schema
 	}
 }
 
-class Talent extends Schema
+class TalentSchema extends Schema
 {
 	@type('uint32')
 	id: number;
@@ -158,7 +158,7 @@ class Talent extends Schema
 	}
 }
 
-export class CombatData extends Schema
+export class CombatDataSchema extends Schema
 {
 	@type('uint32')
 	creatureObjectID: number;
@@ -169,17 +169,17 @@ export class CombatData extends Schema
 	@type('uint32')
 	level: number;
 
-	@type(Abilities)
-	abilities: number;
+	@type(AbilitiesSchema)
+	abilities: AbilitiesSchema;
 	
-	@type(Equipment)
-	equipment: number;
+	@type(EquipmentSchema)
+	equipment: EquipmentSchema;
 
-	@type([Spell])
-	spells: ArraySchema <Spell>;
+	@type([SpellSchema])
+	spells: ArraySchema <SpellSchema>;
 	
-	@type([Talent])
-	talents: ArraySchema <Talent>;
+	@type([TalentSchema])
+	talents: ArraySchema <TalentSchema>;
 
 	constructor(combatData: object)
 	{
@@ -188,22 +188,22 @@ export class CombatData extends Schema
 		this.creatureObjectID = combatData.creatureObjectID;
 		this.exp = combatData.exp;
 		this.level = combatData.level;
-		this.abilities = new Abilities(combatData.abilities);
-		this.equipment = new Equipment(combatData.equipment);
-		this.spells = new ArraySchema <Spell> ();
+		this.abilities = new AbilitiesSchema(combatData.abilities);
+		this.equipment = new EquipmentSchema(combatData.equipment);
+		this.spells = new ArraySchema <SpellSchema> ();
 		for (let i = 0; i < combatData.spells.length; ++i)
 		{
-			this.spells.push(new Spell(combatData.spells[i]));
+			this.spells.push(new SpellSchema(combatData.spells[i]));
 		}
-		this.talents = new ArraySchema <Talent> ();
+		this.talents = new ArraySchema <TalentSchema> ();
 		for (let i = 0; i < combatData.talents.length; ++i)
 		{
-			this.talents.push(new Spell(combatData.talents[i]));
+			this.talents.push(new TalentSchema(combatData.talents[i]));
 		}
 	}
 }
 
-export class Position extends Schema
+export class PositionSchema extends Schema
 {
 	@type('float32')
 	x: number;
@@ -223,7 +223,7 @@ export class Position extends Schema
 	}
 }
 
-export class Direction extends Schema
+export class DirectionSchema extends Schema
 {
 	@type('float32')
 	x: number;
@@ -239,7 +239,7 @@ export class Direction extends Schema
 	}
 }
 
-export class SelectedEquipment extends Schema
+export class SelectedEquipmentSchema extends Schema
 {
 	@type('boolean')
 	isPrimary: boolean;
@@ -251,7 +251,7 @@ export class SelectedEquipment extends Schema
 	}
 }
 
-export class ChangingAbility extends Schema
+export class ChangingAbilitySchema extends Schema
 {
 	@type('float32')
 	current: number;
@@ -270,43 +270,43 @@ export class ChangingAbility extends Schema
 	}
 }
 
-export class Creature extends Schema
+export class CreatureSchema extends Schema
 {
 	@type('string')
 	id: string;
 
-	@type(CombatData)
-	combatData: CombatData;
+	@type(CombatDataSchema)
+	combatData: CombatDataSchema;
 
-	@type(Position)
-	position: Position;
+	@type(PositionSchema)
+	position: PositionSchema;
 
-	lastValidPosition: Position;
+	lastValidPosition: PositionSchema;
 
 	// this variable is not synced
 	lastPositionValidationTime: number = 0;
 
-	@type(Direction)
-	movementDirection: Direction;
+	@type(DirectionSchema)
+	movementDirection: DirectionSchema;
 
-	@type(Direction)
-	lookDirection: Direction;
+	@type(DirectionSchema)
+	lookDirection: DirectionSchema;
 
-	@type(SelectedEquipment)
-	selectedWeapon: SelectedEquipment;
+	@type(SelectedEquipmentSchema)
+	selectedWeapon: SelectedEquipmentSchema;
 
-	@type(SelectedEquipment)
-	selectedAmmo: SelectedEquipment;
+	@type(SelectedEquipmentSchema)
+	selectedAmmo: SelectedEquipmentSchema;
 
-	@type(ChangingAbility)
-	HP: ChangingAbility;
+	@type(ChangingAbilitySchema)
+	HP: ChangingAbilitySchema;
 
-	@type(ChangingAbility)
-	MP: ChangingAbility;
+	@type(ChangingAbilitySchema)
+	MP: ChangingAbilitySchema;
 }
 
-export class CombatState extends Schema
+export class CombatSchema extends Schema
 {
-	@type({ 'map': Creature })
-	creatures = new MapSchema <Creature> ();
+	@type({ 'map': CreatureSchema })
+	creatures = new MapSchema <CreatureSchema> ();
 }

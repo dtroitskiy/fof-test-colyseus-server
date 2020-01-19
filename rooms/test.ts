@@ -1,5 +1,6 @@
 import { Room, Client } from 'colyseus';
-import { CombatData, Position, Direction, SelectedEquipment, ChangingAbility, Creature, CombatState } from '../states/combat';
+import { CombatDataSchema, PositionSchema, DirectionSchema, SelectedEquipmentSchema, ChangingAbilitySchema,
+         CreatureSchema, CombatSchema } from '../states/combat';
 import { Loader } from '../loader';
 import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, CombatEquipment, CombatSpell, VectorCombatSpell,
          CombatTalent, VectorCombatTalent, AbilityChangeSource, CreatureHPChangedCallback, CreatureMPChangedCallback,
@@ -12,7 +13,7 @@ export class TestRoom extends Room
 	static POSITION_VALIDATION_INTERVAL: number = 0.2;
 	static POSITION_VALIDATION_ERROR_FACTOR: number = 1.2;
 
-	state: CombatState;
+	state: CombatSchema;
 
 	isLoaded: boolean = false;
 
@@ -114,7 +115,7 @@ export class TestRoom extends Room
 		const effectOnPlayRequestedHandler = new EffectPlayRequestedCallback(this.onEffectPlayRequested.bind(this));
 		this.combatSystem.addEffectOnPlayRequestedHandler(effectOnPlayRequestedHandler);
 
-		this.setState(new CombatState());
+		this.setState(new CombatSchema());
 		this.setPatchRate(1000 / 60);
 		this.setSimulationInterval(() =>
 		{
@@ -133,17 +134,17 @@ export class TestRoom extends Room
 		const floor = this.combatSystem.getCreatureFloor(creatureID);
 		const pos = this.combatSystem.getCreaturePosition(creatureID);
 
-		const creature = new Creature();
+		const creature = new CreatureSchema();
 		creature.id = creatureID;
-		creature.combatData = new CombatData(data.combatData);
-		creature.position = new Position(pos.x, pos.y, floor);
-		creature.lastValidPosition = new Position(pos.x, pos.y, floor);
-		creature.movementDirection = new Direction(0, 0);
-		creature.lookDirection = new Direction(0, -1);
-		creature.selectedWeapon = new SelectedEquipment(true);
-		creature.selectedAmmo = new SelectedEquipment(true);
-		creature.HP = new ChangingAbility(this.combatSystem.getCreatureCurrentHP(creatureID), this.combatSystem.getCreatureTotalHP(creatureID));
-		creature.MP = new ChangingAbility(this.combatSystem.getCreatureCurrentMP(creatureID), this.combatSystem.getCreatureTotalMP(creatureID));
+		creature.combatData = new CombatDataSchema(data.combatData);
+		creature.position = new PositionSchema(pos.x, pos.y, floor);
+		creature.lastValidPosition = new PositionSchema(pos.x, pos.y, floor);
+		creature.movementDirection = new DirectionSchema(0, 0);
+		creature.lookDirection = new DirectionSchema(0, -1);
+		creature.selectedWeapon = new SelectedEquipmentSchema(true);
+		creature.selectedAmmo = new SelectedEquipmentSchema(true);
+		creature.HP = new ChangingAbilitySchema(this.combatSystem.getCreatureCurrentHP(creatureID), this.combatSystem.getCreatureTotalHP(creatureID));
+		creature.MP = new ChangingAbilitySchema(this.combatSystem.getCreatureCurrentMP(creatureID), this.combatSystem.getCreatureTotalMP(creatureID));
 
 		this.state.creatures[creatureID] = creature;
 
