@@ -3,17 +3,17 @@ import { CombatDataSchema, PositionSchema, DirectionSchema, SelectedEquipmentSch
          CreatureSchema, CombatSchema } from '../states/combat';
 import { Loader } from '../loader';
 import { Vector2, CombatSystem, UniversalTileMap, CreatureCombatData, CombatAbilities, CombatEquipment, CombatSpell, VectorCombatSpell,
-         CombatTalent, VectorCombatTalent, AbilityChangeSource, CreatureHPChangedCallback, CreatureMPChangedCallback,
-         CreatureMissCallback, CreatureFullDefCallback, CreatureCritReceivedCallback, CreatureKilledCallback,
-         EffectPlayRequestedCallback, FoFSprite } from '../FoFcombat/FoFcombat';
+         CombatTalent, VectorCombatTalent, AbilityChangeSource, CreatureHPChangedCallback, CreatureMPChangedCallback, 
+         CreatureAbilityChangedCallback, CreatureMissCallback, CreatureFullDefCallback, CreatureCritReceivedCallback,
+         CreatureEnabledDisabledCallback, CreatureKilledCallback, EffectPlayRequestedCallback, FoFSprite } from '../FoFcombat/FoFcombat';
 
 export class TestRoom extends Room
 {
-	static POSITION_VALIDATION_ENABLED = true;
+	static POSITION_VALIDATION_ENABLED: boolean = true;
 	static POSITION_VALIDATION_INTERVAL: number = 0.2;
 	static POSITION_VALIDATION_ERROR_FACTOR: number = 1.2;
 
-	state: CombatSchema;
+	state: CombatSchema = null;
 
 	isLoaded: boolean = false;
 
@@ -101,6 +101,8 @@ export class TestRoom extends Room
 		this.combatSystem.addCreatureOnHPChangedHandler(creatureOnHPChangedHandler);
 		const creatureOnMPChangedHandler = new CreatureMPChangedCallback(this.onCreatureMPChanged.bind(this));
 		this.combatSystem.addCreatureOnMPChangedHandler(creatureOnMPChangedHandler);
+		const creatureOnAbilityChangedHandler = new CreatureAbilityChangedCallback(this.onCreatureAbilityChanged.bind(this));
+		this.combatSystem.addCreatureOnAbilityChangedHandler(creatureOnAbilityChangedHandler);
 		
 		const creatureOnMissHandler = new CreatureMissCallback(this.onCreatureMissedHit.bind(this));
 		this.combatSystem.addCreatureOnMissHandler(creatureOnMissHandler);
@@ -108,6 +110,9 @@ export class TestRoom extends Room
 		this.combatSystem.addCreatureOnFullDefHandler(creatureOnFullDefHandler);
 		const creatureOnCritReceivedHandler = new CreatureCritReceivedCallback(this.onCreatureCritReceived.bind(this));
 		this.combatSystem.addCreatureOnCritReceivedHandler(creatureOnCritReceivedHandler);
+
+		const creatureOnEnabledDisabledHandler = new CreatureEnabledDisabledCallback(this.onCreatureEnabledDisabled.bind(this));
+		this.combatSystem.addCreatureOnEnabledDisabledHandler(creatureOnEnabledDisabledHandler);
 
 		const creatureOnKilledHandler = new CreatureKilledCallback(this.onCreatureKilled.bind(this));
 		this.combatSystem.addCreatureOnKilledHandler(creatureOnKilledHandler);
@@ -277,6 +282,18 @@ export class TestRoom extends Room
 		creature.MP.changeType = changeType;
 	}
 
+	onCreatureAbilityChanged(creatureID: string, whatChanged: number, oldValue: number, newValue: number)
+	{
+		const message = {
+			'message': 'abilityChanged',
+			'creatureID': creatureID,
+			'what': whatChanged,
+			'oldValue': oldValue,
+			'newValue': newValue
+		};
+		this.broadcast(message);
+	}
+
 	onCreatureMissedHit(creatureID: string)
 	{
 		const message = { 'message': 'miss', 'creatureID': creatureID };
@@ -292,6 +309,12 @@ export class TestRoom extends Room
 	onCreatureCritReceived(creatureID: string, damage: number)
 	{
 		const message = { 'message': 'crit', 'creatureID': creatureID, 'damage': damage };
+		this.broadcast(message);
+	}
+
+	onCreatureEnabledDisabled(creatureID: string, enabled)
+	{
+		const message = { 'message': 'creatureEnabledDisabled', 'creatureID': creatureID, 'enabled': enabled };
 		this.broadcast(message);
 	}
 
