@@ -5,7 +5,7 @@ import { Server } from 'colyseus';
 import { monitor } from '@colyseus/monitor';
 import { TestRoom } from './rooms/test';
 
-const port = Number(process.env.PORT || 8000);
+const port = Number(process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8000);
 const app = express();
 
 app.use(cors());
