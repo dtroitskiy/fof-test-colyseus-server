@@ -166,7 +166,7 @@ export class CombatDataSchema extends Schema
 	@type('uint32')
 	exp: number;
 
-	@type('uint32')
+	@type('uint8')
 	level: number;
 
 	@type(AbilitiesSchema)
@@ -211,7 +211,7 @@ export class PositionSchema extends Schema
 	@type('float32')
 	y: number;
 
-	@type('float32')
+	@type('uint8')
 	z: number;
 
 	constructor(x: number, y: number, z: number)
