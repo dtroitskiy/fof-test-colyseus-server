@@ -23,7 +23,7 @@ class CombatDataSchema : public Schema {
 public:
 	 uint32_t creatureObjectID = 0;
 	 uint32_t exp = 0;
-	 uint32_t level = 0;
+	 uint8_t level = 0;
 	 AbilitiesSchema *abilities = new AbilitiesSchema();
 	 EquipmentSchema *equipment = new EquipmentSchema();
 	 ArraySchema<SpellSchema*> *spells = new ArraySchema<SpellSchema*>();
@@ -31,7 +31,7 @@ public:
 
 	CombatDataSchema() {
 		this->_indexes = {{0, "creatureObjectID"}, {1, "exp"}, {2, "level"}, {3, "abilities"}, {4, "equipment"}, {5, "spells"}, {6, "talents"}};
-		this->_types = {{0, "uint32"}, {1, "uint32"}, {2, "uint32"}, {3, "ref"}, {4, "ref"}, {5, "array"}, {6, "array"}};
+		this->_types = {{0, "uint32"}, {1, "uint32"}, {2, "uint8"}, {3, "ref"}, {4, "ref"}, {5, "array"}, {6, "array"}};
 		this->_childPrimitiveTypes = {};
 		this->_childSchemaTypes = {{3, typeid(AbilitiesSchema)}, {4, typeid(EquipmentSchema)}, {5, typeid(SpellSchema)}, {6, typeid(TalentSchema)}};
 	}
@@ -54,10 +54,6 @@ protected:
 		{
 			return this->exp;
 
-		} else if (field == "level")
-		{
-			return this->level;
-
 		}
 		return Schema::getUint32(field);
 	}
@@ -74,13 +70,28 @@ protected:
 			this->exp = value;
 			return;
 
-		} else if (field == "level")
+		}
+		return Schema::setUint32(field, value);
+	}
+	inline uint8_t getUint8(string field)
+	{
+		if (field == "level")
+		{
+			return this->level;
+
+		}
+		return Schema::getUint8(field);
+	}
+
+	inline void setUint8(string field, uint8_t value)
+	{
+		if (field == "level")
 		{
 			this->level = value;
 			return;
 
 		}
-		return Schema::setUint32(field, value);
+		return Schema::setUint8(field, value);
 	}
 	inline Schema* getRef(string field)
 	{

@@ -131,7 +131,7 @@ class SpellSchema extends Schema
 	@type('uint32')
 	id: number;
 
-	@type('uint32')
+	@type('uint32') // TODO: change to uint8 later
 	level: number;
 
 	constructor(spell: object)
@@ -147,7 +147,7 @@ class TalentSchema extends Schema
 	@type('uint32')
 	id: number;
 
-	@type('uint32')
+	@type('uint32') // TODO: change to uint8 later
 	level: number;
 
 	constructor(talent: object)
@@ -281,9 +281,8 @@ export class CreatureSchema extends Schema
 	@type(PositionSchema)
 	position: PositionSchema;
 
-	lastValidPosition: PositionSchema;
-
-	// this variable is not synced
+	// these variables are not synced
+	lastValidPosition: PositionSchema;	
 	lastPositionValidationTime: number = 0;
 
 	@type(DirectionSchema)
@@ -291,6 +290,12 @@ export class CreatureSchema extends Schema
 
 	@type(DirectionSchema)
 	lookDirection: DirectionSchema;
+
+	@type('float32')
+	moveSpeed: number = 0;
+
+	@type('float32')
+	moveSpeedPercentage: number = 0;
 
 	@type(SelectedEquipmentSchema)
 	selectedWeapon: SelectedEquipmentSchema;

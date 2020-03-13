@@ -20,11 +20,11 @@ class PositionSchema : public Schema {
 public:
 	 float32_t x = 0;
 	 float32_t y = 0;
-	 float32_t z = 0;
+	 uint8_t z = 0;
 
 	PositionSchema() {
 		this->_indexes = {{0, "x"}, {1, "y"}, {2, "z"}};
-		this->_types = {{0, "float32"}, {1, "float32"}, {2, "float32"}};
+		this->_types = {{0, "float32"}, {1, "float32"}, {2, "uint8"}};
 		this->_childPrimitiveTypes = {};
 		this->_childSchemaTypes = {};
 	}
@@ -44,10 +44,6 @@ protected:
 		{
 			return this->y;
 
-		} else if (field == "z")
-		{
-			return this->z;
-
 		}
 		return Schema::getFloat32(field);
 	}
@@ -64,13 +60,28 @@ protected:
 			this->y = value;
 			return;
 
-		} else if (field == "z")
+		}
+		return Schema::setFloat32(field, value);
+	}
+	inline uint8_t getUint8(string field)
+	{
+		if (field == "z")
+		{
+			return this->z;
+
+		}
+		return Schema::getUint8(field);
+	}
+
+	inline void setUint8(string field, uint8_t value)
+	{
+		if (field == "z")
 		{
 			this->z = value;
 			return;
 
 		}
-		return Schema::setFloat32(field, value);
+		return Schema::setUint8(field, value);
 	}
 
 

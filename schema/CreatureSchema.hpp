@@ -27,16 +27,18 @@ public:
 	 PositionSchema *position = new PositionSchema();
 	 DirectionSchema *movementDirection = new DirectionSchema();
 	 DirectionSchema *lookDirection = new DirectionSchema();
+	 float32_t moveSpeed = 0;
+	 float32_t moveSpeedPercentage = 0;
 	 SelectedEquipmentSchema *selectedWeapon = new SelectedEquipmentSchema();
 	 SelectedEquipmentSchema *selectedAmmo = new SelectedEquipmentSchema();
 	 ChangingAbilitySchema *HP = new ChangingAbilitySchema();
 	 ChangingAbilitySchema *MP = new ChangingAbilitySchema();
 
 	CreatureSchema() {
-		this->_indexes = {{0, "id"}, {1, "combatData"}, {2, "position"}, {3, "movementDirection"}, {4, "lookDirection"}, {5, "selectedWeapon"}, {6, "selectedAmmo"}, {7, "HP"}, {8, "MP"}};
-		this->_types = {{0, "string"}, {1, "ref"}, {2, "ref"}, {3, "ref"}, {4, "ref"}, {5, "ref"}, {6, "ref"}, {7, "ref"}, {8, "ref"}};
+		this->_indexes = {{0, "id"}, {1, "combatData"}, {2, "position"}, {3, "movementDirection"}, {4, "lookDirection"}, {5, "moveSpeed"}, {6, "moveSpeedPercentage"}, {7, "selectedWeapon"}, {8, "selectedAmmo"}, {9, "HP"}, {10, "MP"}};
+		this->_types = {{0, "string"}, {1, "ref"}, {2, "ref"}, {3, "ref"}, {4, "ref"}, {5, "float32"}, {6, "float32"}, {7, "ref"}, {8, "ref"}, {9, "ref"}, {10, "ref"}};
 		this->_childPrimitiveTypes = {};
-		this->_childSchemaTypes = {{1, typeid(CombatDataSchema)}, {2, typeid(PositionSchema)}, {3, typeid(DirectionSchema)}, {4, typeid(DirectionSchema)}, {5, typeid(SelectedEquipmentSchema)}, {6, typeid(SelectedEquipmentSchema)}, {7, typeid(ChangingAbilitySchema)}, {8, typeid(ChangingAbilitySchema)}};
+		this->_childSchemaTypes = {{1, typeid(CombatDataSchema)}, {2, typeid(PositionSchema)}, {3, typeid(DirectionSchema)}, {4, typeid(DirectionSchema)}, {7, typeid(SelectedEquipmentSchema)}, {8, typeid(SelectedEquipmentSchema)}, {9, typeid(ChangingAbilitySchema)}, {10, typeid(ChangingAbilitySchema)}};
 	}
 
 	virtual ~CreatureSchema() {
@@ -153,6 +155,35 @@ protected:
 
 		}
 		return Schema::setRef(field, value);
+	}
+	inline float32_t getFloat32(string field)
+	{
+		if (field == "moveSpeed")
+		{
+			return this->moveSpeed;
+
+		} else if (field == "moveSpeedPercentage")
+		{
+			return this->moveSpeedPercentage;
+
+		}
+		return Schema::getFloat32(field);
+	}
+
+	inline void setFloat32(string field, float32_t value)
+	{
+		if (field == "moveSpeed")
+		{
+			this->moveSpeed = value;
+			return;
+
+		} else if (field == "moveSpeedPercentage")
+		{
+			this->moveSpeedPercentage = value;
+			return;
+
+		}
+		return Schema::setFloat32(field, value);
 	}
 
 	inline Schema* createInstance(std::type_index type) {

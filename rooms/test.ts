@@ -166,24 +166,33 @@ export class TestRoom extends Room
 		{
 			// we validate creature movement here by two conditions:
 			// it can't be that creature instantly moved for distance more than one tile
+			// EXCEPT the cases when floor is changed
 			// and movement within defined validation period can't exceed its maximum allowed movement, considering its speed
-
-			// first check
-			const distance = new Vector2(data.position.x - creature.position.x, data.position.y - creature.position.y).length;
-			if (distance >= FoFSprite.SIZE)
+			if (data.position.z == -1)
 			{
-				isRejected = true;
-			}
-			// second check
-			else if (this.totalTime - creature.lastPositionValidationTime >= TestRoom.POSITION_VALIDATION_INTERVAL)
-			{
-				const dt = this.totalTime - creature.lastPositionValidationTime;
-				const distance = new Vector2(data.position.x - creature.lastValidPosition.x, data.position.y - creature.lastValidPosition.y).length;
-				const maxDistance = creature.combatData.abilities.moveSpeed * dt * TestRoom.POSITION_VALIDATION_ERROR_FACTOR;
-				if (distance >= maxDistance)
+				// first check
+				const distance = new Vector2(data.position.x - creature.position.x, data.position.y - creature.position.y).length;
+				if (distance >= FoFSprite.SIZE)
 				{
 					isRejected = true;
 				}
+				// second check
+				else if (this.totalTime - creature.lastPositionValidationTime >= TestRoom.POSITION_VALIDATION_INTERVAL)
+				{
+					const dt = this.totalTime - creature.lastPositionValidationTime;
+					const distance = new Vector2(data.position.x - creature.lastValidPosition.x, data.position.y - creature.lastValidPosition.y).length;
+					const maxDistance = creature.combatData.abilities.moveSpeed * dt * TestRoom.POSITION_VALIDATION_ERROR_FACTOR;
+					if (distance >= maxDistance)
+					{
+						isRejected = true;
+					}
+					creature.lastValidPosition.x = data.position.x;
+					creature.lastValidPosition.y = data.position.y;
+					creature.lastPositionValidationTime = this.totalTime;
+				}
+			}
+			else
+			{
 				creature.lastValidPosition.x = data.position.x;
 				creature.lastValidPosition.y = data.position.y;
 				creature.lastPositionValidationTime = this.totalTime;
@@ -192,13 +201,17 @@ export class TestRoom extends Room
 		
 		if (!isRejected)
 		{
-			isRejected = !this.combatSystem.setCreaturePosition(client.sessionId, new Vector2(data.position.x, data.position.y));
+			isRejected = !this.combatSystem.setCreaturePosition(client.sessionId, new Vector2(data.position.x, data.position.y), data.position.z);
 		}
 
 		if (!isRejected)
 		{
 			creature.position.x = data.position.x;
 			creature.position.y = data.position.y;
+			if (data.position.z != -1)
+			{
+				creature.position.z = data.position.z;
+			}
 			const dir = data.direction;
 			creature.movementDirection.x = dir.x;
 			creature.movementDirection.y = dir.y;
@@ -207,6 +220,8 @@ export class TestRoom extends Room
 				creature.lookDirection.x = dir.x;
 				creature.lookDirection.y = dir.y;
 			}
+			creature.moveSpeed = data.moveSpeed;
+			creature.moveSpeedPercentage = data.moveSpeedPercentage;
 		}
 		else
 		{
@@ -245,8 +260,7 @@ export class TestRoom extends Room
 	{
 		combatData = this.makeCreatureCombatDataFromPlainObject(combatData);
 		this.combatSystem.addCreature(creatureID, combatData);
-		this.combatSystem.setCreatureFloor(creatureID, UniversalTileMap.GROUND_FLOOR);
-
+		
 		// for testing currently spawning creatures on some convenient coordinates in the middle of the map
 		// here we search for free tile in the row of possible positions
 		let tileX = 21, tileY = 32;
@@ -257,7 +271,7 @@ export class TestRoom extends Room
 		}
 		while (tile.isBlocking);
 		
-		this.combatSystem.setCreaturePosition(creatureID, this.combatSystem.makeCreaturePositionForTileCoords(tileX, tileY));
+		this.combatSystem.setCreaturePositionByTileCoords(creatureID, tileX, tileY, UniversalTileMap.GROUND_FLOOR);
 	}
 
 	onCreatureHPChanged(creatureID: string, currentHP: number, totalHP: number, changeType: number)
