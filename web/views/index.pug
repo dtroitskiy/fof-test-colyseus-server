@@ -1,0 +1,21 @@
+doctype html
+html
+	head
+		link(rel='stylesheet', href='/static/style.css')
+		script(type='text/javascript', src='/static/index.js')
+		title FoFserver
+	body
+		h2 FoFserver
+		table(cellspacing=2, cellpadding=0)
+			tr
+				td(class='key') Version
+				td(class='value')=version
+			tr
+				td(class='key') Latency
+				td(id='latency', class='value') 999 ms
+			tr
+				td(class='key') Players
+				td(id='players', class='value') 0
+			tr
+				td(class='key') Rooms
+				td(id='rooms', class='value') 0

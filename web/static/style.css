@@ -1,0 +1,26 @@
+*
+{
+	font: 12pt monospace;
+}
+
+table
+{
+	width: 200pt;
+}
+
+table td
+{
+	padding: 5pt;
+}
+
+table td.key
+{
+	width: 40%;
+	background-color: #DDFFDD;
+}
+
+table td.value
+{
+	background-color: #FFDDDD;
+	text-align: right;
+}
