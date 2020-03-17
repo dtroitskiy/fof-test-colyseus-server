@@ -131,7 +131,7 @@ class SpellSchema extends Schema
 	@type('uint32')
 	id: number;
 
-	@type('uint32') // TODO: change to uint8 later
+	@type('uint8')
 	level: number;
 
 	constructor(spell: object)
@@ -147,7 +147,7 @@ class TalentSchema extends Schema
 	@type('uint32')
 	id: number;
 
-	@type('uint32') // TODO: change to uint8 later
+	@type('uint8')
 	level: number;
 
 	constructor(talent: object)

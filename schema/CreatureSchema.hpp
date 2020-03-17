@@ -2,7 +2,7 @@
 // THIS FILE HAS BEEN GENERATED AUTOMATICALLY
 // DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
 // 
-// GENERATED USING @colyseus/schema 0.5.23
+// GENERATED USING @colyseus/schema 0.5.34
 // 
 #ifndef __SCHEMA_CODEGEN_CREATURESCHEMA_H__
 #define __SCHEMA_CODEGEN_CREATURESCHEMA_H__ 1
@@ -53,7 +53,7 @@ public:
 	}
 
 protected:
-	inline string getString(string field)
+	inline string getString(const string &field)
 	{
 		if (field == "id")
 		{
@@ -63,7 +63,7 @@ protected:
 		return Schema::getString(field);
 	}
 
-	inline void setString(string field, string value)
+	inline void setString(const string &field, string value)
 	{
 		if (field == "id")
 		{
@@ -73,7 +73,7 @@ protected:
 		}
 		return Schema::setString(field, value);
 	}
-	inline Schema* getRef(string field)
+	inline Schema* getRef(const string &field)
 	{
 		if (field == "combatData")
 		{
@@ -111,7 +111,7 @@ protected:
 		return Schema::getRef(field);
 	}
 
-	inline void setRef(string field, Schema* value)
+	inline void setRef(const string &field, Schema* value)
 	{
 		if (field == "combatData")
 		{
@@ -156,7 +156,7 @@ protected:
 		}
 		return Schema::setRef(field, value);
 	}
-	inline float32_t getFloat32(string field)
+	inline float32_t getFloat32(const string &field)
 	{
 		if (field == "moveSpeed")
 		{
@@ -170,7 +170,7 @@ protected:
 		return Schema::getFloat32(field);
 	}
 
-	inline void setFloat32(string field, float32_t value)
+	inline void setFloat32(const string &field, float32_t value)
 	{
 		if (field == "moveSpeed")
 		{

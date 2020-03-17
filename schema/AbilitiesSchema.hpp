@@ -2,7 +2,7 @@
 // THIS FILE HAS BEEN GENERATED AUTOMATICALLY
 // DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
 // 
-// GENERATED USING @colyseus/schema 0.5.23
+// GENERATED USING @colyseus/schema 0.5.34
 // 
 #ifndef __SCHEMA_CODEGEN_ABILITIESSCHEMA_H__
 #define __SCHEMA_CODEGEN_ABILITIESSCHEMA_H__ 1
@@ -48,7 +48,7 @@ public:
 	}
 
 protected:
-	inline float32_t getFloat32(string field)
+	inline float32_t getFloat32(const string &field)
 	{
 		if (field == "HP")
 		{
@@ -122,7 +122,7 @@ protected:
 		return Schema::getFloat32(field);
 	}
 
-	inline void setFloat32(string field, float32_t value)
+	inline void setFloat32(const string &field, float32_t value)
 	{
 		if (field == "HP")
 		{

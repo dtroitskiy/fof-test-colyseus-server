@@ -1,20 +1,9 @@
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_ABILITIESSCHEMA_H__
-#define __SCHEMA_CODEGEN_ABILITIESSCHEMA_H__ 1
+#ifndef _MULTIPLAYER_SCHEMA_CLASSES_
+#define _MULTIPLAYER_SCHEMA_CLASSES_
 
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-
+#include "colyseus/Serializer/schema.h"
 
 using namespace colyseus::schema;
-
 
 class AbilitiesSchema : public Schema {
 public:
@@ -48,7 +37,7 @@ public:
 	}
 
 protected:
-	inline float32_t getFloat32(string field)
+	inline float32_t getFloat32(const string &field)
 	{
 		if (field == "HP")
 		{
@@ -122,7 +111,7 @@ protected:
 		return Schema::getFloat32(field);
 	}
 
-	inline void setFloat32(string field, float32_t value)
+	inline void setFloat32(const string &field, float32_t value)
 	{
 		if (field == "HP")
 		{
@@ -213,28 +202,7 @@ protected:
 		return Schema::setFloat32(field, value);
 	}
 
-
 };
-
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_EQUIPMENTSCHEMA_H__
-#define __SCHEMA_CODEGEN_EQUIPMENTSCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-
-
-using namespace colyseus::schema;
-
 
 class EquipmentSchema : public Schema {
 public:
@@ -268,7 +236,7 @@ public:
 	}
 
 protected:
-	inline uint32_t getUint32(string field)
+	inline uint32_t getUint32(const string &field)
 	{
 		if (field == "id")
 		{
@@ -342,7 +310,7 @@ protected:
 		return Schema::getUint32(field);
 	}
 
-	inline void setUint32(string field, uint32_t value)
+	inline void setUint32(const string &field, uint32_t value)
 	{
 		if (field == "id")
 		{
@@ -433,37 +401,16 @@ protected:
 		return Schema::setUint32(field, value);
 	}
 
-
 };
-
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_SPELLSCHEMA_H__
-#define __SCHEMA_CODEGEN_SPELLSCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-
-
-using namespace colyseus::schema;
-
 
 class SpellSchema : public Schema {
 public:
 	 uint32_t id = 0;
-	 uint32_t level = 0;
+	 uint8_t level = 0;
 
 	SpellSchema() {
 		this->_indexes = {{0, "id"}, {1, "level"}};
-		this->_types = {{0, "uint32"}, {1, "uint32"}};
+		this->_types = {{0, "uint32"}, {1, "uint8"}};
 		this->_childPrimitiveTypes = {};
 		this->_childSchemaTypes = {};
 	}
@@ -473,67 +420,57 @@ public:
 	}
 
 protected:
-	inline uint32_t getUint32(string field)
+	inline uint32_t getUint32(const string &field)
 	{
 		if (field == "id")
 		{
 			return this->id;
 
-		} else if (field == "level")
-		{
-			return this->level;
-
 		}
 		return Schema::getUint32(field);
 	}
 
-	inline void setUint32(string field, uint32_t value)
+	inline void setUint32(const string &field, uint32_t value)
 	{
 		if (field == "id")
 		{
 			this->id = value;
 			return;
 
-		} else if (field == "level")
+		}
+		return Schema::setUint32(field, value);
+	}
+	inline uint8_t getUint8(const string &field)
+	{
+		if (field == "level")
+		{
+			return this->level;
+
+		}
+		return Schema::getUint8(field);
+	}
+
+	inline void setUint8(const string &field, uint8_t value)
+	{
+		if (field == "level")
 		{
 			this->level = value;
 			return;
 
 		}
-		return Schema::setUint32(field, value);
+		return Schema::setUint8(field, value);
 	}
 
-
 };
-
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_TALENTSCHEMA_H__
-#define __SCHEMA_CODEGEN_TALENTSCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-
-
-using namespace colyseus::schema;
-
 
 class TalentSchema : public Schema {
 public:
 	 uint32_t id = 0;
-	 uint32_t level = 0;
+	 uint8_t level = 0;
 
 	TalentSchema() {
 		this->_indexes = {{0, "id"}, {1, "level"}};
-		this->_types = {{0, "uint32"}, {1, "uint32"}};
+		this->_types = {{0, "uint32"}, {1, "uint8"}};
 		this->_childPrimitiveTypes = {};
 		this->_childSchemaTypes = {};
 	}
@@ -543,61 +480,48 @@ public:
 	}
 
 protected:
-	inline uint32_t getUint32(string field)
+	inline uint32_t getUint32(const string &field)
 	{
 		if (field == "id")
 		{
 			return this->id;
 
-		} else if (field == "level")
-		{
-			return this->level;
-
 		}
 		return Schema::getUint32(field);
 	}
 
-	inline void setUint32(string field, uint32_t value)
+	inline void setUint32(const string &field, uint32_t value)
 	{
 		if (field == "id")
 		{
 			this->id = value;
 			return;
 
-		} else if (field == "level")
+		}
+		return Schema::setUint32(field, value);
+	}
+	inline uint8_t getUint8(const string &field)
+	{
+		if (field == "level")
+		{
+			return this->level;
+
+		}
+		return Schema::getUint8(field);
+	}
+
+	inline void setUint8(const string &field, uint8_t value)
+	{
+		if (field == "level")
 		{
 			this->level = value;
 			return;
 
 		}
-		return Schema::setUint32(field, value);
+		return Schema::setUint8(field, value);
 	}
 
-
 };
-
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_COMBATDATASCHEMA_H__
-#define __SCHEMA_CODEGEN_COMBATDATASCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-#include "AbilitiesSchema.hpp"
-#include "EquipmentSchema.hpp"
-#include "SpellSchema.hpp"
-#include "TalentSchema.hpp"
-
-using namespace colyseus::schema;
-
 
 class CombatDataSchema : public Schema {
 public:
@@ -624,7 +548,7 @@ public:
 	}
 
 protected:
-	inline uint32_t getUint32(string field)
+	inline uint32_t getUint32(const string &field)
 	{
 		if (field == "creatureObjectID")
 		{
@@ -638,7 +562,7 @@ protected:
 		return Schema::getUint32(field);
 	}
 
-	inline void setUint32(string field, uint32_t value)
+	inline void setUint32(const string &field, uint32_t value)
 	{
 		if (field == "creatureObjectID")
 		{
@@ -653,7 +577,7 @@ protected:
 		}
 		return Schema::setUint32(field, value);
 	}
-	inline uint8_t getUint8(string field)
+	inline uint8_t getUint8(const string &field)
 	{
 		if (field == "level")
 		{
@@ -663,7 +587,7 @@ protected:
 		return Schema::getUint8(field);
 	}
 
-	inline void setUint8(string field, uint8_t value)
+	inline void setUint8(const string &field, uint8_t value)
 	{
 		if (field == "level")
 		{
@@ -673,7 +597,7 @@ protected:
 		}
 		return Schema::setUint8(field, value);
 	}
-	inline Schema* getRef(string field)
+	inline Schema* getRef(const string &field)
 	{
 		if (field == "abilities")
 		{
@@ -687,7 +611,7 @@ protected:
 		return Schema::getRef(field);
 	}
 
-	inline void setRef(string field, Schema* value)
+	inline void setRef(const string &field, Schema* value)
 	{
 		if (field == "abilities")
 		{
@@ -702,7 +626,7 @@ protected:
 		}
 		return Schema::setRef(field, value);
 	}
-	inline ArraySchema<char*> * getArray(string field)
+	inline ArraySchema<char*> * getArray(const string &field)
 	{
 		if (field == "spells")
 		{
@@ -716,7 +640,7 @@ protected:
 		return Schema::getArray(field);
 	}
 
-	inline void setArray(string field, ArraySchema<char*> * value)
+	inline void setArray(const string &field, ArraySchema<char*> * value)
 	{
 		if (field == "spells")
 		{
@@ -754,26 +678,6 @@ protected:
 	}
 };
 
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_POSITIONSCHEMA_H__
-#define __SCHEMA_CODEGEN_POSITIONSCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-
-
-using namespace colyseus::schema;
-
-
 class PositionSchema : public Schema {
 public:
 	 float32_t x = 0;
@@ -792,7 +696,7 @@ public:
 	}
 
 protected:
-	inline float32_t getFloat32(string field)
+	inline float32_t getFloat32(const string &field)
 	{
 		if (field == "x")
 		{
@@ -806,7 +710,7 @@ protected:
 		return Schema::getFloat32(field);
 	}
 
-	inline void setFloat32(string field, float32_t value)
+	inline void setFloat32(const string &field, float32_t value)
 	{
 		if (field == "x")
 		{
@@ -821,7 +725,7 @@ protected:
 		}
 		return Schema::setFloat32(field, value);
 	}
-	inline uint8_t getUint8(string field)
+	inline uint8_t getUint8(const string &field)
 	{
 		if (field == "z")
 		{
@@ -831,7 +735,7 @@ protected:
 		return Schema::getUint8(field);
 	}
 
-	inline void setUint8(string field, uint8_t value)
+	inline void setUint8(const string &field, uint8_t value)
 	{
 		if (field == "z")
 		{
@@ -842,28 +746,7 @@ protected:
 		return Schema::setUint8(field, value);
 	}
 
-
 };
-
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_DIRECTIONSCHEMA_H__
-#define __SCHEMA_CODEGEN_DIRECTIONSCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-
-
-using namespace colyseus::schema;
-
 
 class DirectionSchema : public Schema {
 public:
@@ -882,7 +765,7 @@ public:
 	}
 
 protected:
-	inline float32_t getFloat32(string field)
+	inline float32_t getFloat32(const string &field)
 	{
 		if (field == "x")
 		{
@@ -896,7 +779,7 @@ protected:
 		return Schema::getFloat32(field);
 	}
 
-	inline void setFloat32(string field, float32_t value)
+	inline void setFloat32(const string &field, float32_t value)
 	{
 		if (field == "x")
 		{
@@ -912,28 +795,7 @@ protected:
 		return Schema::setFloat32(field, value);
 	}
 
-
 };
-
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_SELECTEDEQUIPMENTSCHEMA_H__
-#define __SCHEMA_CODEGEN_SELECTEDEQUIPMENTSCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-
-
-using namespace colyseus::schema;
-
 
 class SelectedEquipmentSchema : public Schema {
 public:
@@ -951,7 +813,7 @@ public:
 	}
 
 protected:
-	inline bool getBoolean(string field)
+	inline bool getBoolean(const string &field)
 	{
 		if (field == "isPrimary")
 		{
@@ -961,7 +823,7 @@ protected:
 		return Schema::getBoolean(field);
 	}
 
-	inline void setBoolean(string field, bool value)
+	inline void setBoolean(const string &field, bool value)
 	{
 		if (field == "isPrimary")
 		{
@@ -972,28 +834,7 @@ protected:
 		return Schema::setBoolean(field, value);
 	}
 
-
 };
-
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_CHANGINGABILITYSCHEMA_H__
-#define __SCHEMA_CODEGEN_CHANGINGABILITYSCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-
-
-using namespace colyseus::schema;
-
 
 class ChangingAbilitySchema : public Schema {
 public:
@@ -1013,7 +854,7 @@ public:
 	}
 
 protected:
-	inline float32_t getFloat32(string field)
+	inline float32_t getFloat32(const string &field)
 	{
 		if (field == "current")
 		{
@@ -1027,7 +868,7 @@ protected:
 		return Schema::getFloat32(field);
 	}
 
-	inline void setFloat32(string field, float32_t value)
+	inline void setFloat32(const string &field, float32_t value)
 	{
 		if (field == "current")
 		{
@@ -1042,7 +883,7 @@ protected:
 		}
 		return Schema::setFloat32(field, value);
 	}
-	inline uint8_t getUint8(string field)
+	inline uint8_t getUint8(const string &field)
 	{
 		if (field == "changeType")
 		{
@@ -1052,7 +893,7 @@ protected:
 		return Schema::getUint8(field);
 	}
 
-	inline void setUint8(string field, uint8_t value)
+	inline void setUint8(const string &field, uint8_t value)
 	{
 		if (field == "changeType")
 		{
@@ -1063,32 +904,7 @@ protected:
 		return Schema::setUint8(field, value);
 	}
 
-
 };
-
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_CREATURESCHEMA_H__
-#define __SCHEMA_CODEGEN_CREATURESCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-#include "CombatDataSchema.hpp"
-#include "PositionSchema.hpp"
-#include "DirectionSchema.hpp"
-#include "SelectedEquipmentSchema.hpp"
-#include "ChangingAbilitySchema.hpp"
-
-using namespace colyseus::schema;
-
 
 class CreatureSchema : public Schema {
 public:
@@ -1123,7 +939,7 @@ public:
 	}
 
 protected:
-	inline string getString(string field)
+	inline string getString(const string &field)
 	{
 		if (field == "id")
 		{
@@ -1133,7 +949,7 @@ protected:
 		return Schema::getString(field);
 	}
 
-	inline void setString(string field, string value)
+	inline void setString(const string &field, string value)
 	{
 		if (field == "id")
 		{
@@ -1143,7 +959,7 @@ protected:
 		}
 		return Schema::setString(field, value);
 	}
-	inline Schema* getRef(string field)
+	inline Schema* getRef(const string &field)
 	{
 		if (field == "combatData")
 		{
@@ -1181,7 +997,7 @@ protected:
 		return Schema::getRef(field);
 	}
 
-	inline void setRef(string field, Schema* value)
+	inline void setRef(const string &field, Schema* value)
 	{
 		if (field == "combatData")
 		{
@@ -1226,7 +1042,7 @@ protected:
 		}
 		return Schema::setRef(field, value);
 	}
-	inline float32_t getFloat32(string field)
+	inline float32_t getFloat32(const string &field)
 	{
 		if (field == "moveSpeed")
 		{
@@ -1240,7 +1056,7 @@ protected:
 		return Schema::getFloat32(field);
 	}
 
-	inline void setFloat32(string field, float32_t value)
+	inline void setFloat32(const string &field, float32_t value)
 	{
 		if (field == "moveSpeed")
 		{
@@ -1282,26 +1098,6 @@ protected:
 	}
 };
 
-
-#endif
-// 
-// THIS FILE HAS BEEN GENERATED AUTOMATICALLY
-// DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
-// 
-// GENERATED USING @colyseus/schema 0.5.23
-// 
-#ifndef __SCHEMA_CODEGEN_COMBATSCHEMA_H__
-#define __SCHEMA_CODEGEN_COMBATSCHEMA_H__ 1
-
-#include "schema.h"
-#include <typeinfo>
-#include <typeindex>
-
-#include "CreatureSchema.hpp"
-
-using namespace colyseus::schema;
-
-
 class CombatSchema : public Schema {
 public:
 	 MapSchema<CreatureSchema*> *creatures = new MapSchema<CreatureSchema*>();
@@ -1318,7 +1114,7 @@ public:
 	}
 
 protected:
-	inline MapSchema<char*> * getMap(string field)
+	inline MapSchema<char*> * getMap(const string &field)
 	{
 		if (field == "creatures")
 		{
@@ -1328,7 +1124,7 @@ protected:
 		return Schema::getMap(field);
 	}
 
-	inline void setMap(string field, MapSchema<char*> * value)
+	inline void setMap(const string &field, MapSchema<char*> * value)
 	{
 		if (field == "creatures")
 		{
@@ -1349,5 +1145,5 @@ protected:
 	}
 };
 
+#endif // _MULTIPLAYER_SCHEMA_CLASSES_
 
-#endif

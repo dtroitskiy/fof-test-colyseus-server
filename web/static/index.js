@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', function()
 	
 	function updateLatency()
 	{
-		var time = Date.now();
-		var req = new XMLHttpRequest();
+		const time = Date.now();
+		const req = new XMLHttpRequest();
 		req.addEventListener('readystatechange', function()
 		{
 			if (req.readyState === XMLHttpRequest.DONE)
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function()
 
 	function updatePlayersAndRooms()
 	{
-		var req = new XMLHttpRequest();
+		const req = new XMLHttpRequest();
 		req.addEventListener('readystatechange', function()
 		{
 			if (req.readyState === XMLHttpRequest.DONE)
@@ -41,5 +41,4 @@ document.addEventListener('DOMContentLoaded', function()
 	}
 
 	requestAnimationFrame(updatePlayersAndRooms);
-
 });

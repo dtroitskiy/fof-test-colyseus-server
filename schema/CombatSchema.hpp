@@ -2,7 +2,7 @@
 // THIS FILE HAS BEEN GENERATED AUTOMATICALLY
 // DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
 // 
-// GENERATED USING @colyseus/schema 0.5.23
+// GENERATED USING @colyseus/schema 0.5.34
 // 
 #ifndef __SCHEMA_CODEGEN_COMBATSCHEMA_H__
 #define __SCHEMA_CODEGEN_COMBATSCHEMA_H__ 1
@@ -32,7 +32,7 @@ public:
 	}
 
 protected:
-	inline MapSchema<char*> * getMap(string field)
+	inline MapSchema<char*> * getMap(const string &field)
 	{
 		if (field == "creatures")
 		{
@@ -42,7 +42,7 @@ protected:
 		return Schema::getMap(field);
 	}
 
-	inline void setMap(string field, MapSchema<char*> * value)
+	inline void setMap(const string &field, MapSchema<char*> * value)
 	{
 		if (field == "creatures")
 		{

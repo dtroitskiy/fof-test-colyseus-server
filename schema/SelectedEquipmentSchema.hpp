@@ -2,7 +2,7 @@
 // THIS FILE HAS BEEN GENERATED AUTOMATICALLY
 // DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
 // 
-// GENERATED USING @colyseus/schema 0.5.23
+// GENERATED USING @colyseus/schema 0.5.34
 // 
 #ifndef __SCHEMA_CODEGEN_SELECTEDEQUIPMENTSCHEMA_H__
 #define __SCHEMA_CODEGEN_SELECTEDEQUIPMENTSCHEMA_H__ 1
@@ -32,7 +32,7 @@ public:
 	}
 
 protected:
-	inline bool getBoolean(string field)
+	inline bool getBoolean(const string &field)
 	{
 		if (field == "isPrimary")
 		{
@@ -42,7 +42,7 @@ protected:
 		return Schema::getBoolean(field);
 	}
 
-	inline void setBoolean(string field, bool value)
+	inline void setBoolean(const string &field, bool value)
 	{
 		if (field == "isPrimary")
 		{

@@ -2,7 +2,7 @@
 // THIS FILE HAS BEEN GENERATED AUTOMATICALLY
 // DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
 // 
-// GENERATED USING @colyseus/schema 0.5.23
+// GENERATED USING @colyseus/schema 0.5.34
 // 
 #ifndef __SCHEMA_CODEGEN_COMBATDATASCHEMA_H__
 #define __SCHEMA_CODEGEN_COMBATDATASCHEMA_H__ 1
@@ -44,7 +44,7 @@ public:
 	}
 
 protected:
-	inline uint32_t getUint32(string field)
+	inline uint32_t getUint32(const string &field)
 	{
 		if (field == "creatureObjectID")
 		{
@@ -58,7 +58,7 @@ protected:
 		return Schema::getUint32(field);
 	}
 
-	inline void setUint32(string field, uint32_t value)
+	inline void setUint32(const string &field, uint32_t value)
 	{
 		if (field == "creatureObjectID")
 		{
@@ -73,7 +73,7 @@ protected:
 		}
 		return Schema::setUint32(field, value);
 	}
-	inline uint8_t getUint8(string field)
+	inline uint8_t getUint8(const string &field)
 	{
 		if (field == "level")
 		{
@@ -83,7 +83,7 @@ protected:
 		return Schema::getUint8(field);
 	}
 
-	inline void setUint8(string field, uint8_t value)
+	inline void setUint8(const string &field, uint8_t value)
 	{
 		if (field == "level")
 		{
@@ -93,7 +93,7 @@ protected:
 		}
 		return Schema::setUint8(field, value);
 	}
-	inline Schema* getRef(string field)
+	inline Schema* getRef(const string &field)
 	{
 		if (field == "abilities")
 		{
@@ -107,7 +107,7 @@ protected:
 		return Schema::getRef(field);
 	}
 
-	inline void setRef(string field, Schema* value)
+	inline void setRef(const string &field, Schema* value)
 	{
 		if (field == "abilities")
 		{
@@ -122,7 +122,7 @@ protected:
 		}
 		return Schema::setRef(field, value);
 	}
-	inline ArraySchema<char*> * getArray(string field)
+	inline ArraySchema<char*> * getArray(const string &field)
 	{
 		if (field == "spells")
 		{
@@ -136,7 +136,7 @@ protected:
 		return Schema::getArray(field);
 	}
 
-	inline void setArray(string field, ArraySchema<char*> * value)
+	inline void setArray(const string &field, ArraySchema<char*> * value)
 	{
 		if (field == "spells")
 		{

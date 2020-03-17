@@ -2,7 +2,7 @@
 // THIS FILE HAS BEEN GENERATED AUTOMATICALLY
 // DO NOT CHANGE IT MANUALLY UNLESS YOU KNOW WHAT YOU'RE DOING
 // 
-// GENERATED USING @colyseus/schema 0.5.23
+// GENERATED USING @colyseus/schema 0.5.34
 // 
 #ifndef __SCHEMA_CODEGEN_EQUIPMENTSCHEMA_H__
 #define __SCHEMA_CODEGEN_EQUIPMENTSCHEMA_H__ 1
@@ -48,7 +48,7 @@ public:
 	}
 
 protected:
-	inline uint32_t getUint32(string field)
+	inline uint32_t getUint32(const string &field)
 	{
 		if (field == "id")
 		{
@@ -122,7 +122,7 @@ protected:
 		return Schema::getUint32(field);
 	}
 
-	inline void setUint32(string field, uint32_t value)
+	inline void setUint32(const string &field, uint32_t value)
 	{
 		if (field == "id")
 		{
