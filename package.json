@@ -15,7 +15,7 @@
 		"@colyseus/monitor": "0.12.1",
 		"cors": "^2.8.5",
 		"express": "^4.16.4",
-		"express-jwt": "^5.3.1",
+		"express-jwt": "^6.0.0",
 		"nodemon": "^1.19.4",
 		"pug": "^2.0.4",
 		"serve-favicon": "^2.5.0",
