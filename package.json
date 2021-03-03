@@ -17,7 +17,7 @@
 		"express": "^4.16.4",
 		"express-jwt": "^5.3.1",
 		"nodemon": "^1.19.4",
-		"pug": "^2.0.4",
+		"pug": "^3.0.1",
 		"serve-favicon": "^2.5.0",
 		"ts-node": "^5.0.1",
 		"typescript": "^2.7.2"
